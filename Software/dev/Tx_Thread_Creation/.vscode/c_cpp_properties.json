@@ -1,0 +1,23 @@
+{
+  "configurations": [
+    {
+      "name": "STM32",
+      "includePath": [
+        "Drivers/CMSIS/Device/ST/STM32H7xx/Include",
+        "Drivers/CMSIS/Include",
+        "Drivers/STM32H7xx_HAL_Driver/Inc",
+        "Drivers/STM32H7xx_HAL_Driver/Inc/Legacy",
+        "Inc",
+        "Middlewares/ST/threadx/common/inc/",
+        "Middlewares/ST/threadx/ports/cortex_m7/gnu/inc/"
+      ],
+      "defines": [
+        "STM32H723xx",
+        "TX_INCLUDE_USER_DEFINE_FILE",
+        "USE_HAL_DRIVER"
+      ],
+      "compilerPath": "/home/chris/.config/Code/User/globalStorage/bmd.stm32-for-vscode/@xpack-dev-tools/arm-none-eabi-gcc/13.3.1-1.1.1/.content/bin/arm-none-eabi-gcc"
+    }
+  ],
+  "version": 4
+}
