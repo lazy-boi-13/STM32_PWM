@@ -184,6 +184,7 @@ int main(void)
         printf("%s\n", "error: Invalid checksum.");
       }
 
+
       HAL_GPIO_TogglePin(LED3_GPIO_Port, LED3_Pin); // indicates the code is running
       HAL_Delay(100); // this code is just for demo purposes
 
@@ -216,42 +217,24 @@ void setStateRS485(uint8_t state)
   switch (state)
   {
     case RS485_T_TX:
-      /*
-      
+      /*     
       Transmitting: 
       set ~RE to HIGH -> sets RXD to High Impedance
       set DE to HIGH -> sets TXD to either High or low and thus Y and or Z to high or low     
-
       */ 
-
       HAL_GPIO_WritePin(Recieve_Enable_GPIO_Port, Recieve_Enable_Pin, GPIO_PIN_SET);
       HAL_GPIO_WritePin(Drive_Enable_GPIO_Port, Drive_Enable_Pin, GPIO_PIN_SET);
       break;
     case RS485_T_RX:
       /*
-      
       Recieving: 
       set ~RE to LOW -> sets RXD to either HIGH low or Don't care depending on A-B Voltage
       set DE to LOW -> sets TXD to Don't care and Y and Z to high Impedance
-
       */ 
       HAL_GPIO_WritePin(Recieve_Enable_GPIO_Port, Recieve_Enable_Pin, GPIO_PIN_RESET);
       HAL_GPIO_WritePin(Drive_Enable_GPIO_Port, Drive_Enable_Pin,GPIO_PIN_RESET);
       break;
 
-    /*
-
-    case RS485_T_2:
-      HAL_GPIO_WritePin(Recieve_Enable_GPIO_Port, Recieve_Enable_Pin, GPIO_PIN_RESET);
-      HAL_GPIO_WritePin(Drive_Enable_GPIO_Port, Drive_Enable_Pin,GPIO_PIN_SET);
-      break;
-    case RS485_T_3:
-    default:
-      HAL_GPIO_WritePin(Recieve_Enable_GPIO_Port, Recieve_Enable_Pin, GPIO_PIN_SET);
-      HAL_GPIO_WritePin(Drive_Enable_GPIO_Port, Drive_Enable_Pin,GPIO_PIN_RESET);
-      break;
-
-    */
   }
 
 }
