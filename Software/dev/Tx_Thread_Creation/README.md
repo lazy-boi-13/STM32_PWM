@@ -16,3 +16,14 @@ unfortunately there is a bug.
 
 as long as Set heap size, stack size or stack location does not change the old linker script in the
 folder old can be used where also the latest main.c file should be saved before generating code
+
+## <b>flashing from VsCode with stm32forVsCode extension</b>
+
+if "permission denied error occurs try manually flashing with openocd"
+
+- openocd -f <board_config>.cfg -c "program <binary_file>.elf verify reset exit"
+
+which in our case yould look like this:
+
+openocd -f openocd.cfg -c "program Tx_Thread_Creation.elf verify reset exit"
+
