@@ -23,7 +23,11 @@ if "permission denied error occurs try manually flashing with openocd"
 
 - openocd -f <board_config>.cfg -c "program <binary_file>.elf verify reset exit"
 
-which in our case yould look like this:
+which in our case would look like this:
 
-openocd -f openocd.cfg -c "program Tx_Thread_Creation.elf verify reset exit"
+- openocd -f openocd.cfg -c "program Tx_Thread_Creation.elf verify reset exit"
+
+a for this project working openocd version is e.g
+
+xPack Open On-Chip Debugger 0.12.0+dev-01685-gb9224c0c0-dirty
 
