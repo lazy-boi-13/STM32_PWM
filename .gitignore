@@ -2,3 +2,4 @@ Software/dev/Tx_Thread_Creation/.vscode
 Software/dev/Tx_Thread_Creation/build
 Software/dev/Tx_Thread_Creation/.stm32env
 
+Software/dev/Tx_Thread_Creation/STM32H723ZGTx_FLASH.ld
