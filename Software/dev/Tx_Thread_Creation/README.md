@@ -19,15 +19,16 @@ folder old can be used where also the latest main.c file should be saved before 
 
 ## <b>flashing from VsCode with stm32forVsCode extension</b>
 
-if "permission denied error occurs try manually flashing with openocd"
+openocd >0.12 with stlink support is required 
 
-- openocd -f <board_config>.cfg -c "program <binary_file>.elf verify reset exit"
+it is possible to manually flash:
 
-which in our case would look like this:
+    openocd -f <board_config>.cfg -c "program <binary_file>.elf verify reset exit"
 
-- openocd -f openocd.cfg -c "program Tx_Thread_Creation.elf verify reset exit"
+    which in our case would look like this:
+    
+    openocd -f openocd.cfg -c "program Tx_Thread_Creation.elf verify reset exit"
 
-a for this project working openocd version is e.g
 
-xPack Open On-Chip Debugger 0.12.0+dev-01685-gb9224c0c0-dirty
+
 
