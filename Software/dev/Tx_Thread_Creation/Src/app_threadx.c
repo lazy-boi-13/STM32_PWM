@@ -13,6 +13,10 @@
   * This software is licensed under terms that can be found in the LICENSE file
   * in the root directory of this software component.
   * If no LICENSE file comes with this software, it is provided AS-IS.
+  * 
+  * MainThread: control over the steppers position
+  * ThreadOne: control over the servos
+  * ThreadTwo: reading adc values
   *
   ******************************************************************************
   */
@@ -24,6 +28,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "main.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -40,6 +45,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 TX_THREAD tx_app_thread;
+
 /* USER CODE BEGIN PV */
 TX_THREAD ThreadOne;
 TX_THREAD ThreadTwo;
@@ -51,6 +57,9 @@ TX_EVENT_FLAGS_GROUP EventFlag;
 void ThreadOne_Entry(ULONG thread_input);
 void ThreadTwo_Entry(ULONG thread_input);
 void App_Delay(uint32_t Delay);
+void (*CallMainThread_ptr)(void) = &CallMainThread;
+
+
 /* USER CODE END PFP */
 
 /**
@@ -129,54 +138,7 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
 void MainThread_Entry(ULONG thread_input)
 {
   /* USER CODE BEGIN MainThread_Entry */
-  UINT old_prio = 0;
-  UINT old_pre_threshold = 0;
-  ULONG   actual_flags = 0;
-  uint8_t count = 0;
-  (void) thread_input;
-
-  while (count < 3)
-  {
-    count++;
-    if (tx_event_flags_get(&EventFlag, THREAD_ONE_EVT, TX_OR_CLEAR,
-                           &actual_flags, TX_WAIT_FOREVER) != TX_SUCCESS)
-    {
-      Error_Handler();
-    }
-    else
-    {
-      /* Update the priority and preemption threshold of ThreadTwo
-      to allow the preemption of ThreadOne */
-      tx_thread_priority_change(&ThreadTwo, NEW_THREAD_TWO_PRIO, &old_prio);
-      tx_thread_preemption_change(&ThreadTwo, NEW_THREAD_TWO_PREEMPTION_THRESHOLD, &old_pre_threshold);
-
-      if (tx_event_flags_get(&EventFlag, THREAD_TWO_EVT, TX_OR_CLEAR,
-                             &actual_flags, TX_WAIT_FOREVER) != TX_SUCCESS)
-      {
-        Error_Handler();
-      }
-      else
-      {
-        /* Reset the priority and preemption threshold of ThreadTwo */
-        tx_thread_priority_change(&ThreadTwo, THREAD_TWO_PRIO, &old_prio);
-        tx_thread_preemption_change(&ThreadTwo, THREAD_TWO_PREEMPTION_THRESHOLD, &old_pre_threshold);
-      }
-    }
-  }
-
-  /* Destroy ThreadOne and ThreadTwo */
-  tx_thread_terminate(&ThreadOne);
-  tx_thread_terminate(&ThreadTwo);
-  printf("%s\n", "Hello from MainThread, ThreadOne and ThreadTwo terminated!");
-
-  /* Infinite loop */
-  while(1)
-  {
-    HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
-
-    /* Thread sleep for 1s */
-    tx_thread_sleep(100);
-  }
+  CallMainThread_ptr();
   /* USER CODE END MainThread_Entry */
 }
 
@@ -207,24 +169,12 @@ void MX_ThreadX_Init(void)
 void ThreadOne_Entry(ULONG thread_input)
 {
   (void) thread_input;
-  uint8_t count = 0;
   /* Infinite loop */
   while(1)
   {
-    HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
-    
+    HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
     /* Delay for 500ms (App_Delay is used to avoid context change). */
     App_Delay(50);
-    count ++;
-    if (count == 10)
-    {
-      printf("%s\n", "ThreadOne: Signaling Event flag");
-      count = 0;
-      if (tx_event_flags_set(&EventFlag, THREAD_ONE_EVT, TX_OR) != TX_SUCCESS)
-      {
-        Error_Handler();
-      }
-    }
   }
 }
 
@@ -236,23 +186,14 @@ void ThreadOne_Entry(ULONG thread_input)
 void ThreadTwo_Entry(ULONG thread_input)
 {
   (void) thread_input;
-  uint8_t count = 0;
+
   /* Infinite loop */
   while (1)
   {
-    HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
-    /* Delay for 200ms (App_Delay is used to avoid context change). */
-    App_Delay(20);
-    count ++;
-    if (count == 25)
-    {
-      printf("%s\n", "ThreadTwo: Signaling Event flag");
-      count = 0;
-      if (tx_event_flags_set(&EventFlag, THREAD_TWO_EVT, TX_OR) != TX_SUCCESS)
-      {
-        Error_Handler();
-      }
-    }
+    HAL_GPIO_TogglePin(LED3_GPIO_Port, LED3_Pin);
+    /* Delay for 300ms */
+    App_Delay(30);
+    
   }
 }
 
@@ -266,4 +207,6 @@ void App_Delay(uint32_t Delay)
   UINT initial_time = tx_time_get();
   while ((tx_time_get() - initial_time) < Delay);
 }
+
+
 /* USER CODE END 1 */

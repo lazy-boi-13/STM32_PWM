@@ -21,6 +21,8 @@
 #include "app_threadx.h"
 #include "main.h"
 #include "stdbool.h"
+#include "tasks.h"
+
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -55,9 +57,12 @@ int iar_fputc(int ch);
 #define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
 #endif /* __ICCARM__ */
 
+
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+
+TIM_HandleTypeDef htim1;
 
 UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart3;
@@ -67,18 +72,15 @@ UART_HandleTypeDef huart3;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
-
-/* OWN FUNCTIONS */
-bool verifyChecksumRS485(uint16_t message);
-void setStateRS485(uint8_t state);
-
-/* GENERATED FUNCTIONS */
 void SystemClock_Config(void);
 static void MPU_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_USART2_UART_Init(void);
+static void MX_TIM1_Init(void);
 /* USER CODE BEGIN PFP */
+bool verifyChecksumRS485(uint16_t message);
+void setStateRS485(uint8_t state);
 
 /* USER CODE END PFP */
 
@@ -123,121 +125,29 @@ int main(void)
 
   /* USER CODE BEGIN SysInit */
 
+
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART3_UART_Init();
   MX_USART2_UART_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
 
-  // MX_ThreadX_Init();
+  MX_ThreadX_Init();
 
   /* We should never get here as control is now taken by the scheduler */
-
-  // uint8_t addresses[2] = {RS485_ENC0, RS485_ENC1};
-  uint8_t addresses[1] = {RS485_ENC0};  // data to send with readposition command
-  uint8_t DataR[2] = {0,0}; // array to catch encoder response 
-
-
-  while (1)
-  {
-    for(int encoder = 0; encoder < sizeof(addresses); ++encoder)
-    {
-
-      setStateRS485(RS485_T_TX); //put the transciver into transmit mode
-
-      HAL_UART_Transmit(&huart2, &addresses[encoder], 1, 100);    //send the command to get position. All we have to do is send the node address
-
-
-      // after the readposition command has been sent it takes the encoder 11uS to respond with 
-      // 20 bits of data, at a rate of 115200 bits/s that takes 185 uS to get position after read
-      // command has been sent 
-      
-      setStateRS485(RS485_T_RX); //set the transceiver back into receive mode for the encoder response
-
-      HAL_UART_Receive(&huart2, DataR, 2,100);
-      
-
-      uint16_t currentPosition = DataR[0]; // low byte comes first
-
-      currentPosition |= DataR[1] << 8; // high byte next, OR it into our 16 bit holder
-
-
-      
-      if (verifyChecksumRS485(currentPosition))
-      {
-        //we got back a good position, so just mask away the checkbits
-        currentPosition &= 0x3FFF;
-
-        //If the resolution is 12-bits, then shift position
-        if (RESOLUTION == 12)
-        {
-          currentPosition = currentPosition >> 2;
-        }
-          printf("current Position: %d\n", currentPosition);  
-      }
-      else
-      {
-        printf("%s\n", "error: Invalid checksum.");
-      }
-
-
-      HAL_GPIO_TogglePin(LED3_GPIO_Port, LED3_Pin); // indicates the code is running
-      HAL_Delay(100); // this code is just for demo purposes
-
-    } // end of for
-  } // end of while
-} // end of main
-
-
-
-bool verifyChecksumRS485(uint16_t message)
-{
-  //using the equation on the datasheet we can calculate the checksums and then make sure they match what the encoder sent.
-  //checksum is invert of XOR of bits, so start with 0b11, so things end up inverted
-  uint16_t checksum = 0x3;
-  for(int i = 0; i < 14; i += 2)
-  {
-    checksum ^= (message >> i) & 0x3;
-  }
-  return checksum == (message >> 14);
 }
 
-/*
- * This function sets the state of the RS485 transceiver. We send it that state we want. Recall above I mentioned how we need to do this as quickly
- * as possible. To be fast, we are not using the digitalWrite functions but instead will access the avr io directly. I have shown the direct access
- * method and left commented the digitalWrite method.
- */
-void setStateRS485(uint8_t state)
-{
-  //switch case to find the mode we want
-  switch (state)
-  {
-    case RS485_T_TX:
-      /*     
-      Transmitting: 
-      set ~RE to HIGH -> sets RXD to High Impedance
-      set DE to HIGH -> sets TXD to either High or low and thus Y and or Z to high or low     
-      */ 
-      HAL_GPIO_WritePin(Recieve_Enable_GPIO_Port, Recieve_Enable_Pin, GPIO_PIN_SET);
-      HAL_GPIO_WritePin(Drive_Enable_GPIO_Port, Drive_Enable_Pin, GPIO_PIN_SET);
-      break;
-    case RS485_T_RX:
-      /*
-      Recieving: 
-      set ~RE to LOW -> sets RXD to either HIGH low or Don't care depending on A-B Voltage
-      set DE to LOW -> sets TXD to Don't care and Y and Z to high Impedance
-      */ 
-      HAL_GPIO_WritePin(Recieve_Enable_GPIO_Port, Recieve_Enable_Pin, GPIO_PIN_RESET);
-      HAL_GPIO_WritePin(Drive_Enable_GPIO_Port, Drive_Enable_Pin,GPIO_PIN_RESET);
-      break;
 
-  }
+void CallMainThread(void) {MainThread(&huart2);}  // calling the MainThread
 
-}
+
+
+
 /**
   * @brief System Clock Configuration
   * @retval None
@@ -294,6 +204,94 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief TIM1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM1_Init(void)
+{
+
+  /* USER CODE BEGIN TIM1_Init 0 */
+
+  /* USER CODE END TIM1_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+  TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = {0};
+
+  /* USER CODE BEGIN TIM1_Init 1 */
+
+  /* USER CODE END TIM1_Init 1 */
+  htim1.Instance = TIM1;
+  htim1.Init.Prescaler = 1000;
+  htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim1.Init.Period = 2599;
+  htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim1.Init.RepetitionCounter = 0;
+  htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim1, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_Init(&htim1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterOutputTrigger2 = TIM_TRGO2_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
+  sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
+  sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;
+  sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
+  sBreakDeadTimeConfig.DeadTime = 0;
+  sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE;
+  sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_HIGH;
+  sBreakDeadTimeConfig.BreakFilter = 0;
+  sBreakDeadTimeConfig.Break2State = TIM_BREAK2_DISABLE;
+  sBreakDeadTimeConfig.Break2Polarity = TIM_BREAK2POLARITY_HIGH;
+  sBreakDeadTimeConfig.Break2Filter = 0;
+  sBreakDeadTimeConfig.AutomaticOutput = TIM_AUTOMATICOUTPUT_DISABLE;
+  if (HAL_TIMEx_ConfigBreakDeadTime(&htim1, &sBreakDeadTimeConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM1_Init 2 */
+
+  /* USER CODE END TIM1_Init 2 */
+  HAL_TIM_MspPostInit(&htim1);
+
 }
 
 /**
