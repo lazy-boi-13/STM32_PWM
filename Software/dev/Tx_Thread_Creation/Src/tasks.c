@@ -1,5 +1,11 @@
+#include <stdio.h>  // definition of printf
+
 #include "tasks.h"
 #include "stdbool.h"
+#include "main.h" // overridden printf
+#include "app_threadx.h"
+
+void App_Delay(uint32_t Delay);
 
 
 uint8_t addresses[1] = {RS485_ENC0};  // data to send with readposition command
@@ -49,16 +55,17 @@ void MainThread(UART_HandleTypeDef *huart)
         {
           currentPosition = currentPosition >> 2;
         }
-          // printf("current Position: %d\n", currentPosition);  
+          printf("current Position: %d\n", currentPosition);  
       }
       else
       {
-        // printf("%s\n", "error: Invalid checksum.");
+        printf("%s\n", "error: Invalid checksum.");
       }
 
 
       HAL_GPIO_TogglePin(LED3_GPIO_Port, LED3_Pin); // indicates the code is running
-      HAL_Delay(100); // this code is just for demo purposes
+
+      App_Delay(100);
 
     } // end of for
   } // end of while
@@ -110,4 +117,16 @@ void setStateRS485(uint8_t state)
 
   }
 
+}
+
+
+/**
+  * @brief  Application Delay function.
+  * @param  Delay : number of ticks to wait
+  * @retval None
+  */
+void App_Delay(uint32_t Delay)
+{
+  UINT initial_time = tx_time_get();
+  while ((tx_time_get() - initial_time) < Delay);
 }

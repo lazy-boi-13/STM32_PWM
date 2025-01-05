@@ -56,7 +56,6 @@ TX_EVENT_FLAGS_GROUP EventFlag;
 /* USER CODE BEGIN PFP */
 void ThreadOne_Entry(ULONG thread_input);
 void ThreadTwo_Entry(ULONG thread_input);
-void App_Delay(uint32_t Delay);
 void (*CallMainThread_ptr)(void) = &CallMainThread;
 
 
@@ -174,7 +173,7 @@ void ThreadOne_Entry(ULONG thread_input)
   {
     HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
     /* Delay for 500ms (App_Delay is used to avoid context change). */
-    App_Delay(50);
+    // App_Delay(50);
   }
 }
 
@@ -192,21 +191,11 @@ void ThreadTwo_Entry(ULONG thread_input)
   {
     HAL_GPIO_TogglePin(LED3_GPIO_Port, LED3_Pin);
     /* Delay for 300ms */
-    App_Delay(30);
+    // App_Delay(30);
     
   }
 }
 
-/**
-  * @brief  Application Delay function.
-  * @param  Delay : number of ticks to wait
-  * @retval None
-  */
-void App_Delay(uint32_t Delay)
-{
-  UINT initial_time = tx_time_get();
-  while ((tx_time_get() - initial_time) < Delay);
-}
 
 
 /* USER CODE END 1 */

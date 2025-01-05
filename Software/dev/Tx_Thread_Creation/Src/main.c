@@ -79,8 +79,7 @@ static void MX_USART3_UART_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_TIM1_Init(void);
 /* USER CODE BEGIN PFP */
-bool verifyChecksumRS485(uint16_t message);
-void setStateRS485(uint8_t state);
+
 
 /* USER CODE END PFP */
 

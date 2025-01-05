@@ -1,9 +1,10 @@
 /* USER CODE BEGIN Header */
-/**
+/*
   ******************************************************************************
   * @file    tasks.h
   * @brief   This file contains the headers of the callback functions.
   ******************************************************************************
+*/
 /* USER CODE END Header */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
