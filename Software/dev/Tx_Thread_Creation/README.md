@@ -29,14 +29,14 @@ which in our case would look like this:
 
 Entry function in app_threadx.c executes callback to main.c where neccesary info can be passed. the tasks are defined in a separate file (tasks.c), this is because when generating code from cubeMX only the callback functions need to be redefined.
 
-    create a new thread in app_threadx.c along other defined threads with tx_thread_create(...)
-    and add an entry function.
+create a new thread in app_threadx.c along other defined threads with tx_thread_create(...)
+and add an entry function.
 
-    create function CallThreadXX in main.h CallThreadXX
+create function CallThreadXX in main.h CallThreadXX
 
-    create function pointer to CallthreadXX in app_threadx.c
+create function pointer to CallthreadXX in app_threadx.c
 
-    define callback function in main.c which calls function defined in tasks.c
+define callback function in main.c which calls function defined in tasks.c
 
 
 
