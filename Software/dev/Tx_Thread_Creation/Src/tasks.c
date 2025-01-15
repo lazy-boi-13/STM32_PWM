@@ -2,23 +2,19 @@
 
 #include "tasks.h"
 #include "stdbool.h"
-#include "main.h" // overridden printf
+#include "main.h" // redefined printf
 #include "app_threadx.h"
-
-void App_Delay(uint32_t Delay);
-
 
 uint8_t addresses[1] = {RS485_ENC0};  // data to send with readposition command
 uint8_t DataR[2] = {0,0}; // array to catch encoder response 
 
-
+void App_Delay(uint32_t Delay);
 bool verifyChecksumRS485(uint16_t message);
 void setStateRS485(uint8_t state);
 
 
 void MainThread(UART_HandleTypeDef *huart)
 {
-
 
   while (1)
   {
@@ -72,6 +68,29 @@ void MainThread(UART_HandleTypeDef *huart)
 
 }
 
+
+void ThreadOne(void)
+{
+  /* Infinite loop */
+  while(1)
+  {
+    HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
+    /* Delay for 500ms (App_Delay is used to avoid context change). */
+    App_Delay(50);
+  }
+}
+
+void ThreadTwo(void)
+{
+    /* Infinite loop */
+  while (1)
+  {
+    HAL_GPIO_TogglePin(LED3_GPIO_Port, LED3_Pin);
+    /* Delay for 300ms */
+    App_Delay(30);
+    
+  }
+}
 
 
 bool verifyChecksumRS485(uint16_t message)

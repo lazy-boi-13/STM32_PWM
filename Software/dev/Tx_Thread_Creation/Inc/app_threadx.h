@@ -81,6 +81,8 @@ extern "C" {
 UINT App_ThreadX_Init(VOID *memory_ptr);
 void MX_ThreadX_Init(void);
 void MainThread_Entry(ULONG thread_input);
+void ThreadOne_Entry(ULONG thread_input);
+void ThreadTwo_Entry(ULONG thread_input);
 /* USER CODE BEGIN EFP */
 
 

@@ -143,8 +143,8 @@ int main(void)
 
 
 void CallMainThread(void) {MainThread(&huart2);}  // calling the MainThread
-
-
+void CallThreadOne(void)  {ThreadOne();}
+void CallThreadTwo(void)  {ThreadTwo();}
 
 
 /**

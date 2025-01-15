@@ -65,8 +65,12 @@ void Error_Handler(void);
 
 
 /* USER CODE BEGIN EFP */
-void CallMainThread(void);
 
+// functions that call the task functions defined in tasks.h
+
+void CallMainThread(void);
+void CallThreadOne(void);
+void CallThreadTwo(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

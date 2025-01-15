@@ -18,8 +18,8 @@ extern "C" {
 #include "main.h"
 
 void MainThread(UART_HandleTypeDef *huart);  // control of the steppers via encoder
-
-
+void ThreadOne(void);
+void ThreadTwo(void);
 
 /*
  * Control the AMT21xE encoder.
