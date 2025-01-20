@@ -1,11 +1,9 @@
-/* USER CODE BEGIN Header */
 /*
   ******************************************************************************
   * @file    tasks.h
   * @brief   This file contains the headers of the callback functions.
   ******************************************************************************
 */
-/* USER CODE END Header */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __TASKS_H
@@ -16,12 +14,53 @@ extern "C" {
 #endif
 
 #include "main.h"
+#include "stdbool.h"
 
-void MainThread(UART_HandleTypeDef *huart);  // control of the steppers via encoder
-void ThreadOne(void);
-void ThreadTwo(void);
+
+/*  SERVO PULSE WIDTH
+ *
+ * PWM-Settings minimum and max value is the value of the duty cycle with 200 Hz period
+ * e.g 100 equals 10% DC at 200 Hz which is a pulse width of 0.1 * 1/200 = 500 microseconds
+ * 300 equals 30% @ 200 Hz which is 0.3 * 1/200 = 1500 microseconds
+ * the maximum Duty Cycle for a 2000 microseconds pulse is 50%
+ * the dm1500's range is 500 to 2000 microseconds that is a duty in parts of thousand from
+ * 100 to 500
+ *
+ */
+
+/*  MAP POTVALUES TO DUTYCYCLE
+ *
+ *  in partsPerThousand with 12 bit ADC
+ *  example for digital representation of physical stick position
+ *  in x direction.
+ *
+ * - potValue = 3 when all the way up
+ * - potValue = [1900 - 2300] center position (varies from stick to stick)
+ * - potValue = 4094 when all the way down
+ *
+ */
+
+/*  STEPPER FREQUENCY
+ *
+ * The Stepper Motors are controlled through frequency rather than pulse width
+ * minVal and maxVal refer to the frequency and not the duty cycle.
+ * Each Stepper also has GPIO pin assigned to that when toggled changes direction
+ * And an enable pin for error handling
+ *
+ */
 
 /*
+ * STEPPER HOLDING TORQUE
+ *
+ * The holding torque is created by setting the step pin to high for as long
+ * as the holding torque must persist, this is done by setting the Duty cycle to zero
+ *
+ */
+
+
+
+
+/* 
  * Control the AMT21xE encoder.
  * It uses one UART to control the encoder and the the another UART to report back to the PC
  * via the Serial Monitor.
@@ -39,9 +78,8 @@ void ThreadTwo(void);
  *
  * Required Equipment Note:
  * The AMT21 requires a high speed RS485 transceiver for operation. For this demo
- * the MAX485 RS485 transceiver was used in a DIP format along with a breadboard. This code was
+ * a generic RS485 transceiver was used. This code was
  * made in conjunction with a walkthrough demo project available online at www.cuidevices.com/resources/.
- * 
  * 
  */
 
@@ -90,8 +128,52 @@ void ThreadTwo(void);
  */
 #define RS485_T_TX            0 //transmit: receiver off, driver on
 #define RS485_T_RX            1 //receiver: driver off, transmit on
-#define RS485_T_2             2 //unused
-#define RS485_T_3             3 //unused
+
+bool verifyChecksumRS485(uint16_t message);
+
+
+/*
+ * This function sets the state of the RS485 transceiver. We send it that state we want. Recall above I mentioned how we need to do this as quickly
+ * as possible. To be fast, we are not using the digitalWrite functions but instead will access the avr io directly. I have shown the direct access
+ * method and left commented the digitalWrite method.
+ */
+void setStateRS485(uint8_t state);
+
+/**
+  * @brief Main thread 
+  * @param huart struct(s) for sending and recieving encoder information
+  *        timer struct(s) for adjusting the period of the stepper pwm
+  *        adc struct (s) for reading the anoalog stick value 
+  *        
+  * @retval None
+  */
+
+void MainThread(UART_HandleTypeDef* huart, TIM_HandleTypeDef* timer, ADC_HandleTypeDef* adc);
+
+
+/**
+  * @brief Thread One 
+  * @param  None    
+  * @retval None
+  */
+void ThreadOne_x(void);
+
+
+/**
+  * @brief Thread Two 
+  * @param  None    
+  * @retval None
+  */
+void ThreadTwo_x(void);
+
+
+/** 
+  * @brief  Application Delay function for avoiding context switch
+  *         otherwise use _tx_thread_sleep()
+  * @param  Delay : number of ticks to wait
+  * @retval None
+  */
+void App_Delay(uint32_t Delay);
 
 
 

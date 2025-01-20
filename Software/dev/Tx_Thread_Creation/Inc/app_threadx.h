@@ -44,10 +44,10 @@ extern "C" {
 #define TX_APP_STACK_SIZE                       512
 #define TX_APP_THREAD_PRIO                      5
 /* USER CODE BEGIN PD */
-#define THREAD_ONE_PRIO                         10
+#define THREAD_ONE_PRIO                         3
 #define THREAD_ONE_PREEMPTION_THRESHOLD         THREAD_ONE_PRIO
-#define THREAD_TWO_PRIO                         10
-#define THREAD_TWO_PREEMPTION_THRESHOLD         9
+#define THREAD_TWO_PRIO                         3
+#define THREAD_TWO_PREEMPTION_THRESHOLD         3
 
 #define NEW_THREAD_TWO_PRIO                     8
 #define NEW_THREAD_TWO_PREEMPTION_THRESHOLD     8
@@ -81,8 +81,6 @@ extern "C" {
 UINT App_ThreadX_Init(VOID *memory_ptr);
 void MX_ThreadX_Init(void);
 void MainThread_Entry(ULONG thread_input);
-void ThreadOne_Entry(ULONG thread_input);
-void ThreadTwo_Entry(ULONG thread_input);
 /* USER CODE BEGIN EFP */
 
 

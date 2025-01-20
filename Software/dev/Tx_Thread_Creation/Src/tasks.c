@@ -1,19 +1,16 @@
 #include <stdio.h>  // definition of printf
 
 #include "tasks.h"
-#include "stdbool.h"
 #include "main.h" // redefined printf
 #include "app_threadx.h"
+
+
 
 uint8_t addresses[1] = {RS485_ENC0};  // data to send with readposition command
 uint8_t DataR[2] = {0,0}; // array to catch encoder response 
 
-void App_Delay(uint32_t Delay);
-bool verifyChecksumRS485(uint16_t message);
-void setStateRS485(uint8_t state);
 
-
-void MainThread(UART_HandleTypeDef *huart)
+void MainThread(UART_HandleTypeDef* huart, TIM_HandleTypeDef* timer, ADC_HandleTypeDef* adc)
 {
 
   while (1)
@@ -58,10 +55,17 @@ void MainThread(UART_HandleTypeDef *huart)
         printf("%s\n", "error: Invalid checksum.");
       }
 
+     /*
+      read the adc value(s) and modify the stepper period accordingly with respect to min and max values
+      from the encoder(s)
+     */
 
-      HAL_GPIO_TogglePin(LED3_GPIO_Port, LED3_Pin); // indicates the code is running
 
-      App_Delay(100);
+
+
+      HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin); // indicates the code is running
+
+      _tx_thread_sleep(100);  // restart task every 100 ticks to enable context switch
 
     } // end of for
   } // end of while
@@ -69,26 +73,25 @@ void MainThread(UART_HandleTypeDef *huart)
 }
 
 
-void ThreadOne(void)
+void ThreadOne_x(void)
 {
   /* Infinite loop */
   while(1)
   {
     HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
     /* Delay for 500ms (App_Delay is used to avoid context change). */
-    App_Delay(50);
+    _tx_thread_sleep(200);
   }
 }
 
-void ThreadTwo(void)
+void ThreadTwo_x(void)
 {
     /* Infinite loop */
   while (1)
   {
     HAL_GPIO_TogglePin(LED3_GPIO_Port, LED3_Pin);
     /* Delay for 300ms */
-    App_Delay(30);
-    
+    _tx_thread_sleep(300);
   }
 }
 
@@ -105,11 +108,7 @@ bool verifyChecksumRS485(uint16_t message)
   return checksum == (message >> 14);
 }
 
-/*
- * This function sets the state of the RS485 transceiver. We send it that state we want. Recall above I mentioned how we need to do this as quickly
- * as possible. To be fast, we are not using the digitalWrite functions but instead will access the avr io directly. I have shown the direct access
- * method and left commented the digitalWrite method.
- */
+
 void setStateRS485(uint8_t state)
 {
   //switch case to find the mode we want
@@ -139,11 +138,7 @@ void setStateRS485(uint8_t state)
 }
 
 
-/**
-  * @brief  Application Delay function.
-  * @param  Delay : number of ticks to wait
-  * @retval None
-  */
+
 void App_Delay(uint32_t Delay)
 {
   UINT initial_time = tx_time_get();

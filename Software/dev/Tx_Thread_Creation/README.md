@@ -19,7 +19,7 @@ it is possible to manually flash:
 
     openocd -f <board_config>.cfg -c "program <binary_file>.elf verify reset exit"
 
-which in our case would look like this:
+which in this case would look like this:
     
     openocd -f openocd.cfg -c "program Tx_Thread_Creation.elf verify reset exit"
 

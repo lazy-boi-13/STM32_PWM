@@ -45,15 +45,17 @@
 
 /* Private variables ---------------------------------------------------------*/
 TX_THREAD tx_app_thread;
-
 /* USER CODE BEGIN PV */
-TX_THREAD ThreadOne_x;
-TX_THREAD ThreadTwo_x;
+TX_THREAD ThreadOne;
+TX_THREAD ThreadTwo;
 TX_EVENT_FLAGS_GROUP EventFlag;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN PFP */
+
+void ThreadOne_Entry(ULONG thread_input);
+void ThreadTwo_Entry(ULONG thread_input);
 
 // function pointers to call threads
 void (*CallMainThread_ptr)(void) = &CallMainThread;
@@ -99,7 +101,7 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
   }
 
   /* Create ThreadOne.  */
-  if (tx_thread_create(&ThreadOne_x, "Thread One", ThreadOne_Entry, 0, pointer,
+  if (tx_thread_create(&ThreadOne, "Thread One", ThreadOne_Entry, 0, pointer,
                        TX_APP_STACK_SIZE, THREAD_ONE_PRIO, THREAD_ONE_PREEMPTION_THRESHOLD,
                        TX_APP_THREAD_TIME_SLICE, TX_APP_THREAD_AUTO_START) != TX_SUCCESS)
   {
@@ -114,7 +116,7 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
   }
 
   /* Create ThreadTwo.  */
-  if (tx_thread_create(&ThreadTwo_x, "Thread Two", ThreadTwo_Entry, 0, pointer,
+  if (tx_thread_create(&ThreadTwo, "Thread Two", ThreadTwo_Entry, 0, pointer,
                        TX_APP_STACK_SIZE, THREAD_TWO_PRIO, THREAD_TWO_PREEMPTION_THRESHOLD,
                        TX_APP_THREAD_TIME_SLICE, TX_APP_THREAD_AUTO_START) != TX_SUCCESS)
   {
@@ -170,7 +172,7 @@ void ThreadOne_Entry(ULONG thread_input)
 {
   (void) thread_input;
   
-  CallThreadOne_ptr();
+  CallThreadOne_ptr();  // callback to main
 
 }
 
