@@ -142,13 +142,12 @@ int main(void)
   MX_ADC3_Init();
   MX_TIM1_Init();
   MX_TIM2_Init();
-  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
-
 
   /* USER CODE BEGIN 2 */
 
-  // Calibrate The ADC On Power-Up For Better Accuracy
-  HAL_ADCEx_Calibration_Start(&hadc3, ADC_CALIB_OFFSET_LINEARITY, ADC_SINGLE_ENDED);
+  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1); // start the PWM Output
+  HAL_ADCEx_Calibration_Start(&hadc3, ADC_CALIB_OFFSET_LINEARITY, ADC_SINGLE_ENDED);  // Calibrate The ADC On Power-Up For Better Accuracy
+
 
   /* USER CODE END 2 */
 
