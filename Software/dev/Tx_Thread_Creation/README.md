@@ -7,8 +7,7 @@ This application is for controlling multiple servos and or steppers via azure_rt
 
 This code is a modified version of the example Tx_Thread_Creation from the CubeMX Example selector
 
-The code needs to be generated using the Makefile toolchain only that way the VsCode Extension
-will work.
+The code needs to be generated using the Makefile toolchain only that way the VsCode Extension will work.
 
 
 ## <b>flashing from VsCode with stm32forVsCode extension</b>
@@ -27,18 +26,20 @@ which in this case would look like this:
 
 ## <b>Add a new task</b>
 
-Entry function in app_threadx.c executes callback to main.c where neccesary info can be passed. the tasks are defined in a separate file (tasks.c), this is because when generating code from cubeMX only the callback functions need to be redefined.
+Add user code in main.c only in the designated sections otherwise the costum code will be overwritten when generating code from CubeMX
 
-create a new thread in app_threadx.c along other defined threads with tx_thread_create(...)
-and add an entry function.
+/* USER CODE BEGIN ... */
 
-create function CallThreadXX in main.h CallThreadXX
+insert user code here <---
 
-create function pointer to CallthreadXX in app_threadx.c
+/* USER CODE END ... */
 
-define callback function in main.c which calls function defined in tasks.c
+Entry function in app_threadx.c executes callback to main.c where neccesary info can be passed. the tasks are defined in a separate file (tasks.c), this is because the tasks are big functions hence the main.c file would be a bit too long and confusing.
 
+declare function CallThreadXX in main.h
 
+create a new thread in app_threadx.c along other defined threads and priorities with tx_thread_create(...)
 
+define function pointer to CallthreadXX  and entry fucntion with callback to main in app_threadx.c
 
-
+define callback function in main.c which calls function defined in tasks.c with necessary parameters

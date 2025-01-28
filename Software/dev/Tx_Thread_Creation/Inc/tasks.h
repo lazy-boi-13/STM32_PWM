@@ -141,9 +141,9 @@ void setStateRS485(uint8_t state);
 
 /**
   * @brief Main thread 
-  * @param huart struct(s) for sending and recieving encoder information
-  *        timer struct(s) for adjusting the period of the stepper pwm
-  *        adc struct (s) for reading the anoalog stick value 
+  * @param huart for sending and recieving encoder information
+  *        timer for adjusting the period of the stepper pwm
+  *        adc for reading the anoalog stick value 
   *        
   * @retval None
   */
@@ -160,11 +160,12 @@ void ThreadOne_x(void);
 
 
 /**
-  * @brief Thread Two 
-  * @param  None    
+  * @brief Thread Two reads the adc values x and y from a stick and maps 
+  *        it to the stepper period
+  * @param  hadcs
   * @retval None
   */
-void ThreadTwo_x(void);
+void ThreadTwo_x(ADC_HandleTypeDef* hadc);
 
 
 /** 

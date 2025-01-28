@@ -1,13 +1,15 @@
 #include <stdio.h>  // definition of printf
 
 #include "tasks.h"
-#include "main.h" // redefined printf
+#include "main.h"
 #include "app_threadx.h"
 
 
 
 uint8_t addresses[1] = {RS485_ENC0};  // data to send with readposition command
 uint8_t DataR[2] = {0,0}; // array to catch encoder response 
+
+uint16_t AD_RES = 0;  // ADC Value
 
 
 void MainThread(UART_HandleTypeDef* huart, TIM_HandleTypeDef* timer, ADC_HandleTypeDef* adc)
@@ -79,19 +81,29 @@ void ThreadOne_x(void)
   while(1)
   {
     HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
-    /* Delay for 500ms (App_Delay is used to avoid context change). */
-    _tx_thread_sleep(200);
+    _tx_thread_sleep(200);  // restart task every 200 ticks to enable context swi
   }
 }
 
-void ThreadTwo_x(void)
+void ThreadTwo_x(ADC_HandleTypeDef* hadc)
 {
-    /* Infinite loop */
+
   while (1)
   {
+
+    // Start ADC Conversion
+    HAL_ADC_Start(hadc);
+    // Poll ADC1 Perihperal & TimeOut = 1mSec
+    HAL_ADC_PollForConversion(hadc, 1);
+    // Read The ADC Conversion Result & Map It To PWM DutyCycle
+    AD_RES = HAL_ADC_GetValue(hadc);
+    TIM2->CCR1 = (AD_RES<<4);
+
+    printf("ADC Value: %d\n", AD_RES);  
+
+
     HAL_GPIO_TogglePin(LED3_GPIO_Port, LED3_Pin);
-    /* Delay for 300ms */
-    _tx_thread_sleep(300);
+    _tx_thread_sleep(100);  // restart task every 100 ticks to enable context switch
   }
 }
 
