@@ -8,7 +8,6 @@
 
 uint8_t addresses[1] = {RS485_ENC0};  //data to send with readposition command
 uint8_t DataR[2] = {0,0}; //array to catch encoder response 
-uint32_t AD_RES_BUFFER[2];  //store ADC results
 
 
 void MainThread(UART_HandleTypeDef* huart, TIM_HandleTypeDef* timer, ADC_HandleTypeDef* adc)
@@ -87,8 +86,7 @@ void ThreadOne_x(void)
 void ThreadTwo_x(ADC_HandleTypeDef* hadc)
 {
 
-  HAL_ADC_Start_DMA(hadc, &AD_RES_BUFFER, 2);  // start sampling
-  
+  (void)hadc;
 
   while (1) 
   {
@@ -140,13 +138,6 @@ void setStateRS485(uint8_t state)
 
 }
 
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)  
-{
-
-    printf("X Value: %lu\n", AD_RES_BUFFER[0]);  
-    printf("Y Value: %lu\n", AD_RES_BUFFER[1]);  
-
-}
 
 
 
