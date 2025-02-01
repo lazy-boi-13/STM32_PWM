@@ -6,10 +6,9 @@
 
 
 
-uint8_t addresses[1] = {RS485_ENC0};  // data to send with readposition command
-uint8_t DataR[2] = {0,0}; // array to catch encoder response 
-
-uint16_t AD_RES = 0;  // ADC Value
+uint8_t addresses[1] = {RS485_ENC0};  //data to send with readposition command
+uint8_t DataR[2] = {0,0}; //array to catch encoder response 
+uint32_t AD_RES_BUFFER[2];  //store ADC results
 
 
 void MainThread(UART_HandleTypeDef* huart, TIM_HandleTypeDef* timer, ADC_HandleTypeDef* adc)
@@ -50,11 +49,11 @@ void MainThread(UART_HandleTypeDef* huart, TIM_HandleTypeDef* timer, ADC_HandleT
         {
           currentPosition = currentPosition >> 2;
         }
-          printf("current Position: %d\n", currentPosition);  
+          // printf("current Position: %d\n", currentPosition);  // DEBUG
       }
       else
       {
-        printf("%s\n", "error: Invalid checksum.");
+        // printf("%s\n", "error: Invalid checksum."); // DEBUG
       }
 
      /*
@@ -88,20 +87,12 @@ void ThreadOne_x(void)
 void ThreadTwo_x(ADC_HandleTypeDef* hadc)
 {
 
-  while (1)
+  HAL_ADC_Start_DMA(hadc, &AD_RES_BUFFER, 2);  // start sampling
+  
+
+  while (1) 
   {
-
-    // Start ADC Conversion
-    HAL_ADC_Start(hadc);
-    // Poll ADC1 Perihperal & TimeOut = 1mSec
-    HAL_ADC_PollForConversion(hadc, 1);
-    // Read The ADC Conversion Result & Map It To PWM DutyCycle
-    AD_RES = HAL_ADC_GetValue(hadc);
-    TIM2->CCR1 = (AD_RES<<4);
-
-    printf("ADC Value: %d\n", AD_RES);  
-
-
+ 
     HAL_GPIO_TogglePin(LED3_GPIO_Port, LED3_Pin);
     _tx_thread_sleep(100);  // restart task every 100 ticks to enable context switch
   }
@@ -146,6 +137,14 @@ void setStateRS485(uint8_t state)
       break;
 
   }
+
+}
+
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)  
+{
+
+    printf("X Value: %lu\n", AD_RES_BUFFER[0]);  
+    printf("Y Value: %lu\n", AD_RES_BUFFER[1]);  
 
 }
 

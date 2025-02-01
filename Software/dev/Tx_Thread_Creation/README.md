@@ -43,3 +43,8 @@ create a new thread in app_threadx.c along other defined threads and priorities 
 define function pointer to CallthreadXX  and entry fucntion with callback to main in app_threadx.c
 
 define callback function in main.c which calls function defined in tasks.c with necessary parameters
+
+## <b>ADC Configuration</b>
+
+ADC operates in scan mode, to add another channel increase the number of conversions, 1 ADC can sample up to 16 channels
+
