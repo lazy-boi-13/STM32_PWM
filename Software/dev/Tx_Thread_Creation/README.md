@@ -46,5 +46,30 @@ define callback function in main.c which calls function defined in tasks.c with 
 
 ## <b>ADC Configuration</b>
 
-ADC operates in scan mode, to add another channel increase the number of conversions, 1 ADC can sample up to 16 channels
+
+STM32 ADC-Multi channel Scan Coninous Mode 
+
+In this mode the ADC only has to be triggered once to start conversion. As it's running it will keep triggering itself after completion of regular group conversion.
+
+the ADC is started using:    HAL_ADC_Start_DMA(...) (if conversion launched by software is configured, otherwise the timer can also trigger conversion)
+
+upon end of conversion the callback function: HAL_ADC_ConvCpltCallback(...) can be used to fetch the data
+
+ADC Settings:
+
+	DMA Settings:
+
+	DMA Mode = circular
+	transfer mode = peripheral to memory
+	Data width = word
+	increment address -> memory
+
+	Parameter settings:
+	
+	External Trigger conversion source = timer 1 capture/compare event
+	scan conversion mode = enabled
+	continuous conversion mode = enabled
+	end of conversion selection = end of sequence
+	Clock Prescaler = Asynchronous clock divided by 1
+	Channel sampling time = 1.5 cycles
 

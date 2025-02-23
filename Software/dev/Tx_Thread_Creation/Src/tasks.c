@@ -4,10 +4,12 @@
 #include "main.h"
 #include "app_threadx.h"
 
+#define ADC_BUF_SIZE  2
 
 
 uint8_t addresses[1] = {RS485_ENC0};  //data to send with readposition command
 uint8_t DataR[2] = {0,0}; //array to catch encoder response 
+uint32_t ADC_BUF[ADC_BUF_SIZE];
 
 
 void MainThread(UART_HandleTypeDef* huart, TIM_HandleTypeDef* timer, ADC_HandleTypeDef* adc)
@@ -86,7 +88,22 @@ void ThreadOne_x(void)
 void ThreadTwo_x(ADC_HandleTypeDef* hadc)
 {
 
-  (void)hadc;
+  // Calibrate the ADC
+  /*
+   if(HAL_OK != HAL_ADCEx_Calibration_Start(hadc, ADC_SINGLE_ENDED, ADC_SINGLE_ENDED))
+  {
+    Error_Handler();
+  } 
+  */
+
+  // start the ADC in circular mode
+  if(HAL_OK != HAL_ADC_Start_DMA(hadc, ADC_BUF, ADC_BUF_SIZE))
+  {
+    Error_Handler();
+  }
+
+  printf("%s\n", "DMA initialized."); 
+
 
   while (1) 
   {
@@ -145,4 +162,15 @@ void App_Delay(uint32_t Delay)
 {
   UINT initial_time = tx_time_get();
   while ((tx_time_get() - initial_time) < Delay);
+}
+
+
+
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)  
+{
+
+    
+    printf("X Value: %lu\n", ADC_BUF[0]);
+    printf("Y Value: %lu\n", ADC_BUF[1]);  
+
 }
