@@ -156,8 +156,6 @@ void setStateRS485(uint8_t state)
 }
 
 
-
-
 void App_Delay(uint32_t Delay)
 {
   UINT initial_time = tx_time_get();
@@ -174,3 +172,4 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
     printf("Y Value: %lu\n", ADC_BUF[1]);  
 
 }
+
