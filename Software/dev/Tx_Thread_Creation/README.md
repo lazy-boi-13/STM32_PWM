@@ -73,3 +73,20 @@ ADC Settings:
 	Clock Prescaler = Asynchronous clock divided by 1
 	Channel sampling time = 1.5 cycles
 
+## <b>Timer Configuration</b>
+
+	PWM Generation Parameters:
+
+	GPIO Settings:
+		GPIO MODE = ALTERNATE FUNCTION
+		PINM ODE = PULLDOWN
+		PIN SPEED = HIGH
+	
+	NVIC Settings:
+		TIMER_XX interrupt Enabled
+		ENable Timer_XX ARR Register preload
+		set auto reload value to desired frequency
+		set compare value
+		...
+
+
