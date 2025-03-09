@@ -165,16 +165,7 @@ void ThreadOne_x(void);
   * @param  hadcs
   * @retval None
   */
-void ThreadTwo_x(ADC_HandleTypeDef* hadc);
-
-
-/** 
-  * @brief  Application Delay function for avoiding context switch
-  *         otherwise use _tx_thread_sleep()
-  * @param  Delay : number of ticks to wait
-  * @retval None
-  */
-void App_Delay(uint32_t Delay);
+void ThreadTwo_x(ADC_HandleTypeDef* hadc, TIM_HandleTypeDef* timer);
 
 
 

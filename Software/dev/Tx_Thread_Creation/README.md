@@ -1,4 +1,4 @@
-
+circular
 ## <b>Tx_Thread_Creation application description</b>
 
 This application is for controlling multiple servos and or steppers via azure_rtos
@@ -46,30 +46,40 @@ define callback function in main.c which calls function defined in tasks.c with 
 
 ## <b>ADC Configuration</b>
 
+STM32 ADC-Multi channel Scan Continuos Mode 
 
-STM32 ADC-Multi channel Scan Coninous Mode 
+ADC is triggered by a thread with the function HAL_ADC_Start_DMA(...)
 
-In this mode the ADC only has to be triggered once to start conversion. As it's running it will keep triggering itself after completion of regular group conversion.
+Upon end of conversion the callback function: HAL_ADC_ConvCpltCallback(...) is used to copy the data in to the buffer
 
-the ADC is started using:    HAL_ADC_Start_DMA(...) (if conversion launched by software is configured, otherwise the timer can also trigger conversion)
 
-upon end of conversion the callback function: HAL_ADC_ConvCpltCallback(...) can be used to fetch the data
 
-ADC Settings:
+	These are the most important ADC Settings configurable in .ioc file:
 
-	DMA Settings:
+		ADC Settings:
 
-	DMA Mode = circular
-	transfer mode = peripheral to memory
-	Data width = word
-	increment address -> memory
+		Scan Conversion mode = enabled 
+		Conversion data managment mode = DMA circular mode
+		External Trigger conversion source = timer 1 capture Compare 1 event
+		scan conversion mode = enabled
+		continuous conversion mode = disabled
+		end of conversion selection = end of sequence
 
-	Parameter settings:
-	
-	External Trigger conversion source = timer 1 capture/compare event
-	scan conversion mode = enabled
-	continuous conversion mode = enabled
-	end of conversion selection = end of sequence
-	Clock Prescaler = Asynchronous clock divided by 1
-	Channel sampling time = 1.5 cycles
+		Timer Settings:
+
+		Master Slave mode is not neccessary
+		Clock Source = internal clock // internal clock @ 72 MHz
+		prescaler = 7200
+		Counter Period = 10000 ---> period is to be 1 Hz
+
+		PWM Generation CHannel 1:
+		pwm Mode 1 Pulse 5000 // meaning 50 % Duty Cycle at 1 HZ
+
+		DMA Settings:
+
+		transfer mode = peripheral to memory
+		DMA Mode = circular	// DMA will keep triggering itself after the first transfer
+			
+									 
+
 

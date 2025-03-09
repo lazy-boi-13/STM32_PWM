@@ -85,33 +85,58 @@ void ThreadOne_x(void)
   }
 }
 
-void ThreadTwo_x(ADC_HandleTypeDef* hadc)
+
+void ThreadTwo_x(ADC_HandleTypeDef* hadc, TIM_HandleTypeDef* timer)
 {
 
-  // Calibrate the ADC
-  /*
-   if(HAL_OK != HAL_ADCEx_Calibration_Start(hadc, ADC_SINGLE_ENDED, ADC_SINGLE_ENDED))
+
+  // start the PWM Generation on channel 1
+  if (HAL_OK != HAL_TIM_PWM_Start(timer, TIM_CHANNEL_1))
   {
     Error_Handler();
   } 
-  */
-
-  // start the ADC in circular mode
-  if(HAL_OK != HAL_ADC_Start_DMA(hadc, ADC_BUF, ADC_BUF_SIZE))
+  
+  if (HAL_OK != HAL_TIM_PWM_Start(timer, TIM_CHANNEL_2))
   {
     Error_Handler();
-  }
+  } 
 
-  printf("%s\n", "DMA initialized."); 
+  if (HAL_OK != HAL_TIM_PWM_Start(timer, TIM_CHANNEL_3))
+  {
+    Error_Handler();
+  } 
 
 
   while (1) 
   {
- 
+    
+  if (HAL_OK != HAL_ADC_Start_DMA(hadc, ADC_BUF, ADC_BUF_SIZE)) // Enable ADC, start conversion of regular group and transfer result through DMA.
+  {
+    Error_Handler();
+  } 
+
     HAL_GPIO_TogglePin(LED3_GPIO_Port, LED3_Pin);
     _tx_thread_sleep(100);  // restart task every 100 ticks to enable context switch
+
   }
+
+  
 }
+
+
+//Conversion Complete callback function
+
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)  
+{
+    printf("%s\n", "Hello from conversion complete callback"); 
+    
+    printf("X Value: %lu\n", ADC_BUF[0]);
+    printf("Y Value: %lu\n", ADC_BUF[1]);  
+
+}
+
+
+/* ---Helper functions--- */
 
 
 bool verifyChecksumRS485(uint16_t message)
@@ -125,6 +150,9 @@ bool verifyChecksumRS485(uint16_t message)
   }
   return checksum == (message >> 14);
 }
+
+
+
 
 
 void setStateRS485(uint8_t state)
@@ -157,20 +185,3 @@ void setStateRS485(uint8_t state)
 
 
 
-
-void App_Delay(uint32_t Delay)
-{
-  UINT initial_time = tx_time_get();
-  while ((tx_time_get() - initial_time) < Delay);
-}
-
-
-
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)  
-{
-
-    
-    printf("X Value: %lu\n", ADC_BUF[0]);
-    printf("Y Value: %lu\n", ADC_BUF[1]);  
-
-}
