@@ -4,12 +4,10 @@
 #include "main.h"
 #include "app_threadx.h"
 
-#define ADC_BUF_SIZE  2
-
 
 uint8_t addresses[1] = {RS485_ENC0};  //data to send with readposition command
 uint8_t DataR[2] = {0,0}; //array to catch encoder response 
-uint32_t ADC_BUF[ADC_BUF_SIZE];
+volatile uint16_t ADC_BUF[2] __attribute__((section(".nocache"))); // add this array to non cacheable area
 
 
 void MainThread(UART_HandleTypeDef* huart, TIM_HandleTypeDef* timer, ADC_HandleTypeDef* adc)
@@ -86,34 +84,38 @@ void ThreadOne_x(void)
 }
 
 
-void ThreadTwo_x(ADC_HandleTypeDef* hadc, TIM_HandleTypeDef* timer)
+void ThreadTwo_x(ADC_HandleTypeDef* hadc, TIM_HandleTypeDef* pwmtimer, TIM_HandleTypeDef* triggertimer)
 {
 
 
-  // start the PWM Generation on channel 1
-  if (HAL_OK != HAL_TIM_PWM_Start(timer, TIM_CHANNEL_1))
+  // start the PWM Generation on all channels
+  if (HAL_OK != HAL_TIM_PWM_Start(pwmtimer, TIM_CHANNEL_1))
   {
     Error_Handler();
   } 
   
-  if (HAL_OK != HAL_TIM_PWM_Start(timer, TIM_CHANNEL_2))
+  if (HAL_OK != HAL_TIM_PWM_Start(pwmtimer, TIM_CHANNEL_2))
   {
     Error_Handler();
   } 
 
-  if (HAL_OK != HAL_TIM_PWM_Start(timer, TIM_CHANNEL_3))
+  if (HAL_OK != HAL_TIM_PWM_Start(pwmtimer, TIM_CHANNEL_3))
   {
     Error_Handler();
   } 
 
+  HAL_ADCEx_Calibration_Start(hadc, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED);  // calibrate the ADC
+  
+  if (HAL_OK != HAL_ADC_Start_DMA(hadc, (uint32_t*) &ADC_BUF, 2))   // start the ADC conversion over DMA in circular mode
+  {
+    Error_Handler();
+  } 
+
+  HAL_TIM_Base_Start(triggertimer); // start the timer that triggers ADC Conversions
+  
 
   while (1) 
   {
-    
-  if (HAL_OK != HAL_ADC_Start_DMA(hadc, ADC_BUF, ADC_BUF_SIZE)) // Enable ADC, start conversion of regular group and transfer result through DMA.
-  {
-    Error_Handler();
-  } 
 
     HAL_GPIO_TogglePin(LED3_GPIO_Port, LED3_Pin);
     _tx_thread_sleep(100);  // restart task every 100 ticks to enable context switch
@@ -128,10 +130,13 @@ void ThreadTwo_x(ADC_HandleTypeDef* hadc, TIM_HandleTypeDef* timer)
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)  
 {
-    printf("%s\n", "Hello from conversion complete callback"); 
     
-    printf("X Value: %lu\n", ADC_BUF[0]);
-    printf("Y Value: %lu\n", ADC_BUF[1]);  
+    
+
+    printf("X Value: %u\n", ADC_BUF[0]);  // DEBUG
+    printf("Y Value: %u\n", ADC_BUF[1]);  // DEBUG 
+
+
 
 }
 

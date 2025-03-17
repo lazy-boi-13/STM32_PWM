@@ -46,40 +46,41 @@ define callback function in main.c which calls function defined in tasks.c with 
 
 ## <b>ADC Configuration</b>
 
-STM32 ADC-Multi channel Scan Continuos Mode 
+STM32 ADC-Multi channel Scan Mode 
 
-ADC is triggered by a thread with the function HAL_ADC_Start_DMA(...)
+ADC1 is sampling two channels at 10Hz.
 
-Upon end of conversion the callback function: HAL_ADC_ConvCpltCallback(...) is used to copy the data in to the buffer
+HAL_ADC_Start(..) is called once and runs continuously in circular mode
+
+a conversion is triggered by timer 2 trigger out event every 100ms
+
+for the H7 series the the buffer needs to be put into a non cacheable area:
+
+	the RAM_D3 Memory area has its base address and size as seen in the specific linker script
+	here STM32H723GTx_FLASH.ld:
+	
+	RAM_D3  (xrw)    : ORIGIN = 0x38000000,   LENGTH = 16K
+
+	this area is not reserved so we can with no problem reserve space for the buffer there:
+
+	/* RAM MODIFICATION  NON-CHACHABLE AREA FOR ADC BUFFER */
+
+	  .nocache (NOLOAD) :
+  	{
+		. = ALIGN(16);
+		*(.nocache)
+	
+	} >RAM_D3
+
+	in the .ioc file under System core-> CORTEX_M7 with i and D Cache enabled 
 
 
+	![Image caption](pictures/Memory RegionSettings.png)
 
-	These are the most important ADC Settings configurable in .ioc file:
 
-		ADC Settings:
+	then add the array to the memory area we reserved and the keyword volatile to avoid compiler optimizations:
 
-		Scan Conversion mode = enabled 
-		Conversion data managment mode = DMA circular mode
-		External Trigger conversion source = timer 1 capture Compare 1 event
-		scan conversion mode = enabled
-		continuous conversion mode = disabled
-		end of conversion selection = end of sequence
-
-		Timer Settings:
-
-		Master Slave mode is not neccessary
-		Clock Source = internal clock // internal clock @ 72 MHz
-		prescaler = 7200
-		Counter Period = 10000 ---> period is to be 1 Hz
-
-		PWM Generation CHannel 1:
-		pwm Mode 1 Pulse 5000 // meaning 50 % Duty Cycle at 1 HZ
-
-		DMA Settings:
-
-		transfer mode = peripheral to memory
-		DMA Mode = circular	// DMA will keep triggering itself after the first transfer
-			
-									 
+	volatile uint16_t ADC_BUF[2] __attribute__((section(".nocache")));
+	
 
 

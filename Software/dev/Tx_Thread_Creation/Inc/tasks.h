@@ -165,7 +165,7 @@ void ThreadOne_x(void);
   * @param  hadcs
   * @retval None
   */
-void ThreadTwo_x(ADC_HandleTypeDef* hadc, TIM_HandleTypeDef* timer);
+void ThreadTwo_x(ADC_HandleTypeDef* hadc, TIM_HandleTypeDef* pwmtimer, TIM_HandleTypeDef* triggertimer);
 
 
 
