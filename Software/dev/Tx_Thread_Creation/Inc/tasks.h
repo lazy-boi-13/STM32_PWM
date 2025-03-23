@@ -152,20 +152,22 @@ void MainThread(UART_HandleTypeDef* huart, TIM_HandleTypeDef* timer, ADC_HandleT
 
 
 /**
-  * @brief Thread One 
+  * @brief Thread to control the servo motors 
+  * 
+  * initialize pwm config
+  * calculate/modify duty cycle according to configuration
   * @param  None    
   * @retval None
   */
-void ThreadOne_x(void);
+void ServoControl(ADC_HandleTypeDef* hadc, TIM_HandleTypeDef* pwmtimer, TIM_HandleTypeDef* triggertimer);
 
 
 /**
-  * @brief Thread Two reads the adc values x and y from a stick and maps 
-  *        it to the stepper period
+  * @brief Thread d
   * @param  hadcs
   * @retval None
   */
-void ThreadTwo_x(ADC_HandleTypeDef* hadc, TIM_HandleTypeDef* pwmtimer, TIM_HandleTypeDef* triggertimer);
+void ExtraThread(void);
 
 
 

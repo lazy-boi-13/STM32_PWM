@@ -42,10 +42,11 @@ extern "C" {
 
 /* Private defines -----------------------------------------------------------*/
 #define TX_APP_STACK_SIZE                       512
-#define TX_APP_THREAD_PRIO                      5
+
 /* USER CODE BEGIN PD */
 #define THREAD_ONE_PRIO                         3
 #define THREAD_ONE_PREEMPTION_THRESHOLD         THREAD_ONE_PRIO
+
 #define THREAD_TWO_PRIO                         3
 #define THREAD_TWO_PREEMPTION_THRESHOLD         3
 
@@ -57,6 +58,8 @@ extern "C" {
 /* USER CODE END PD */
 
 /* Main thread defines -------------------------------------------------------*/
+
+#define TX_APP_THREAD_PRIO                      3 // MainThread priority
 #ifndef TX_APP_THREAD_PREEMPTION_THRESHOLD
 #define TX_APP_THREAD_PREEMPTION_THRESHOLD      TX_APP_THREAD_PRIO
 #endif

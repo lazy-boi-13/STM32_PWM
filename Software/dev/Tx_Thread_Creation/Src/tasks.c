@@ -5,10 +5,24 @@
 #include "app_threadx.h"
 
 
+#define NUM_OF_STEPPERS 2
+#define NUM_OF_POTIS 2
+
+
 uint8_t addresses[1] = {RS485_ENC0};  //data to send with readposition command
 uint8_t DataR[2] = {0,0}; //array to catch encoder response 
+volatile uint16_t PotValues[NUM_OF_POTIS];
 volatile uint16_t ADC_BUF[2] __attribute__((section(".nocache"))); // add this array to non cacheable area
 
+const uint16_t maxVal = 900;  
+const uint16_t minVal = 100;
+const uint16_t stepSize = 1;
+
+bool countup = true;
+
+
+
+// read encoder and modify the period of the pwm signals according to the adc values
 
 void MainThread(UART_HandleTypeDef* huart, TIM_HandleTypeDef* timer, ADC_HandleTypeDef* adc)
 {
@@ -72,23 +86,15 @@ void MainThread(UART_HandleTypeDef* huart, TIM_HandleTypeDef* timer, ADC_HandleT
 
 }
 
+// outputs the pwm signals for the connected servos
 
-void ThreadOne_x(void)
-{
-  /* Infinite loop */
-  while(1)
-  {
-    HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
-    _tx_thread_sleep(200);  // restart task every 200 ticks to enable context swi
-  }
-}
+// initializes the ADC
 
-
-void ThreadTwo_x(ADC_HandleTypeDef* hadc, TIM_HandleTypeDef* pwmtimer, TIM_HandleTypeDef* triggertimer)
+void ServoControl(ADC_HandleTypeDef* hadc, TIM_HandleTypeDef* pwmtimer, TIM_HandleTypeDef* triggertimer)
 {
 
+   // PWM init
 
-  // start the PWM Generation on all channels
   if (HAL_OK != HAL_TIM_PWM_Start(pwmtimer, TIM_CHANNEL_1))
   {
     Error_Handler();
@@ -104,14 +110,76 @@ void ThreadTwo_x(ADC_HandleTypeDef* hadc, TIM_HandleTypeDef* pwmtimer, TIM_Handl
     Error_Handler();
   } 
 
-  HAL_ADCEx_Calibration_Start(hadc, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED);  // calibrate the ADC
+  // ADC init
+
+  if (HAL_OK != HAL_ADCEx_Calibration_Start(hadc, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED))   // calibrate the adc
+  {
+    Error_Handler();
+  } 
   
-  if (HAL_OK != HAL_ADC_Start_DMA(hadc, (uint32_t*) &ADC_BUF, 2))   // start the ADC conversion over DMA in circular mode
+  if (HAL_OK != HAL_ADC_Start_DMA(hadc, (uint32_t*) &ADC_BUF, NUM_OF_POTIS))   // start the ADC conversion over DMA in circular mode
   {
     Error_Handler();
   } 
 
   HAL_TIM_Base_Start(triggertimer); // start the timer that triggers ADC Conversions
+
+  volatile uint32_t CCRVal = pwmtimer->Instance->CCR1; // TIMERCHANNEL1 OUT PE9
+
+  /* Infinite loop */
+  while(1)
+  {
+    // assuming the pulse period is stored in the CCR Register of the timer
+
+
+    // 250 ticks is 25 percent duty cycyle, with maxVal at 900 and minVal at 100 we sweep between 
+    // 10% and 90% Duty cyle 
+
+
+    if (countup == true)
+    {
+      if (CCRVal >= maxVal-stepSize)
+      {
+        countup = false;
+        CCRVal = maxVal;
+      }
+
+      else 
+      {
+        CCRVal += stepSize;
+      }
+
+    }
+
+    else
+    {
+      if (CCRVal <= minVal + stepSize)
+      {
+        countup = true;
+        CCRVal = minVal;
+      }
+      else 
+      {
+        CCRVal -= stepSize;
+      }
+    }
+
+    pwmtimer->Instance->CCR1 = CCRVal;
+
+
+  HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
+  _tx_thread_sleep(200);  // restart task every 200 ticks to allow context switch
+
+  }
+  
+
+
+  }
+
+
+void ExtraThread(void)
+{
+
   
 
   while (1) 
@@ -131,12 +199,20 @@ void ThreadTwo_x(ADC_HandleTypeDef* hadc, TIM_HandleTypeDef* pwmtimer, TIM_Handl
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)  
 {
     
-    
+    uint16_t value0 = ADC_BUF[0];
+    uint16_t value1 = ADC_BUF[1];
+
+    // 16 bit adc means the result is between 0 and 65536
+
+    // map the raw adc values accordingly
+
+    // ...
+
+    PotValues[0] = value0;
+    PotValues[1] = value1;
 
     printf("X Value: %u\n", ADC_BUF[0]);  // DEBUG
     printf("Y Value: %u\n", ADC_BUF[1]);  // DEBUG 
-
-
 
 }
 

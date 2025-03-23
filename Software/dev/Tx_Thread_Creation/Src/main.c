@@ -86,8 +86,8 @@ static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
 
 void CallMainThread(void) {MainThread(&huart2, &htim1, &hadc1);} 
-void CallThreadOne(void)  {ThreadOne_x();}
-void CallThreadTwo(void)  {ThreadTwo_x(&hadc1, &htim1, &htim2);}
+void CallThreadOne(void)  {ServoControl(&hadc1, &htim1, &htim2);}
+void CallThreadTwo(void)  {ExtraThread();}
 
 /* USER CODE END PFP */
 
@@ -299,11 +299,6 @@ static void MX_ADC1_Init(void)
 
 }
 
-/**
-  * @brief TIM1 Initialization Function
-  * @param None
-  * @retval None
-  */
 static void MX_TIM1_Init(void)
 {
 
@@ -320,11 +315,6 @@ static void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 1 */
   htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 19200;
-  htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim1.Init.Period = 1000;
-  htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim1.Init.RepetitionCounter = 0;
   htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_Base_Init(&htim1) != HAL_OK)
   {
