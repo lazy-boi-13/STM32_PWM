@@ -83,4 +83,16 @@ for the H7 series the the buffer needs to be put into a non cacheable area:
 	volatile uint16_t ADC_BUF[2] __attribute__((section(".nocache")));
 	
 
+	## <b>Working with git</b>
+
+	discard all changes and reset the current branch history
+
+		git fetch origin
+
+		git reset --hard origin/main
+	
+	push current version of project, ignore merge conflicts
+
+		git push --force origin
+
 

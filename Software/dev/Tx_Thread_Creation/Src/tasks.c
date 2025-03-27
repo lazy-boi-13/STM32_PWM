@@ -3,7 +3,7 @@
 #include "tasks.h"
 #include "main.h"
 #include "app_threadx.h"
-
+#include "timerpwm.h"
 
 #define NUM_OF_STEPPERS 2
 #define NUM_OF_POTIS 2
@@ -94,21 +94,12 @@ void ServoControl(ADC_HandleTypeDef* hadc, TIM_HandleTypeDef* pwmtimer, TIM_Hand
 {
 
    // PWM init
-
-  if (HAL_OK != HAL_TIM_PWM_Start(pwmtimer, TIM_CHANNEL_1))
-  {
-    Error_Handler();
-  } 
   
-  if (HAL_OK != HAL_TIM_PWM_Start(pwmtimer, TIM_CHANNEL_2))
-  {
+   if (HAL_OK != hal_timerPWM_start(pwmtimer))
+   {
     Error_Handler();
-  } 
+   }
 
-  if (HAL_OK != HAL_TIM_PWM_Start(pwmtimer, TIM_CHANNEL_3))
-  {
-    Error_Handler();
-  } 
 
   // ADC init
 

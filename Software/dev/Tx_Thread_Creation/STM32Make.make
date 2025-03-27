@@ -262,7 +262,8 @@ Src/stm32h7xx_it.c \
 Src/syscalls.c \
 Src/sysmem.c \
 Src/system_stm32h7xx.c \
-Src/tasks.c
+Src/tasks.c \
+Src/timerpwm.c
 
 
 CXX_SOURCES = \
