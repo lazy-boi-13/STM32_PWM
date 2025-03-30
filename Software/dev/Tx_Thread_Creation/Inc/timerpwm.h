@@ -42,17 +42,17 @@ typedef struct
     uint32_t stepSize;
     uint32_t duty;
     bool countUp;
-    uint16_t maxVal;    // max Duty Cycle in parts per thousand
-    uint16_t minVal;    // min. Duty Cycle in parts per thousand
+    uint16_t maxVal;    // max Duty Cycle 
+    uint16_t minVal;    // min. Duty Cycle 
     uint16_t center;    // unmapped ADC Value for center position
     const timerPWMPeripheral_t peripherie;
 
 } pwmSettings_t;
 
 // --- Function Prototypes
-HAL_StatusTypeDef hal_timerPWM_start(TIM_HandleTypeDef* pwmtimer);
+HAL_StatusTypeDef hal_timerPWM_start(TIM_HandleTypeDef* pwmtimer, pwmSettings_t* arr);
 void hal_timerPWM_stop(TIM_HandleTypeDef* pwmtimer);
-void hal_sweep(TIM_HandleTypeDef* pwmtimer, uint16_t maxVal, uint16_t minVal, uint16_t stepSize);
+void hal_sweep(TIM_HandleTypeDef* pwmtimer, pwmSettings_t* pwm);
 
 
 

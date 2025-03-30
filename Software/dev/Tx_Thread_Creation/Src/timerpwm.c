@@ -24,8 +24,7 @@
 void _hal_timerPWM_dutySet(timerPWMPeripheral_t pwm, uint32_t partOfTousend);
 
 // --- Variables
-bool countup = true;
-
+volatile uint32_t CCRVal;
 
 /**
  ****************************************************************
@@ -34,23 +33,65 @@ bool countup = true;
  @return -
  ****************************************************************
  */
-HAL_StatusTypeDef hal_timerPWM_start(TIM_HandleTypeDef* pwmtimer)
+HAL_StatusTypeDef hal_timerPWM_start(TIM_HandleTypeDef* pwmtimer, pwmSettings_t* arr)
 {
-  
-  if (HAL_OK != HAL_TIM_PWM_Start(pwmtimer, TIM_CHANNEL_1))
-  {
-    Error_Handler();
-  } 
-  
-  if (HAL_OK != HAL_TIM_PWM_Start(pwmtimer, TIM_CHANNEL_2))
-  {
-    Error_Handler();
-  } 
 
-  if (HAL_OK != HAL_TIM_PWM_Start(pwmtimer, TIM_CHANNEL_3))
+
+
+  for (int i = 0; i < TIMERPWM_LAST_PERIPHERIE; i++)
   {
-    Error_Handler();
-  } 
+    switch(arr[i].peripherie)
+    {
+
+    case TIMERPWM_SERVO_0:
+
+      if (HAL_OK != HAL_TIM_PWM_Start(pwmtimer, TIM_CHANNEL_1))
+      {
+        Error_Handler();
+      }
+
+    break;
+
+    case TIMERPWM_SERVO_1:
+
+      if (HAL_OK != HAL_TIM_PWM_Start(pwmtimer, TIM_CHANNEL_2))
+      {
+        Error_Handler();  
+      } 
+
+      break;
+
+    case TIMERPWM_SERVO_2:
+
+      if (HAL_OK != HAL_TIM_PWM_Start(pwmtimer, TIM_CHANNEL_3))
+      {
+        Error_Handler();
+      } 
+
+      break;
+
+    case TIMERPWM_SERVO_3:
+      //set PWM period (SERVO_3)
+
+      break;
+    case TIMERPWM_SERVO_4:
+       //set PWM period (SERVO_4)
+
+        break;
+    case STEPPER_1:
+       //set PWM period (STEPPER_1)
+
+        break;
+    case STEPPER_2:
+       //set PWM period (STEPPER_2)
+
+      break;
+
+    default:
+      break;
+
+    }
+  }
 
   return HAL_OK;
   
@@ -80,23 +121,21 @@ void hal_timerPWM_stop(TIM_HandleTypeDef* pwmtimer)
 void hal_sweep(TIM_HandleTypeDef* pwmtimer, pwmSettings_t* pwm)
 {
 
-  volatile uint32_t CCRVal;
   
   // get capture compare value
   switch(pwm->peripherie)
   {
 
     case TIMERPWM_SERVO_0:
-
-    CCRVal = pwmtimer->Instance->CCR1; // TIMERCHANNEL1 OUT PE9
+    CCRVal = pwmtimer->Instance->CCR1;
     break;
 
     case TIMERPWM_SERVO_1:
-      //set PWM period (SERVO_1)
+    CCRVal = pwmtimer->Instance->CCR2;
 
       break;
     case TIMERPWM_SERVO_2:
-      //set PWM period (SERVO_2)
+    CCRVal = pwmtimer->Instance->CCR3;
 
       break;
     case TIMERPWM_SERVO_3:
@@ -122,11 +161,11 @@ void hal_sweep(TIM_HandleTypeDef* pwmtimer, pwmSettings_t* pwm)
 
 
 
-  if (countup == true)
+  if (pwm->countUp == true)
   {
-    if (CCRVal >= pwm->maxVal-pwm->stepSize)
+    if (CCRVal >= pwm->maxVal - pwm->stepSize)
     {
-      countup = false;
+      pwm->countUp = false;
       CCRVal = pwm->maxVal;
     }
 
@@ -140,7 +179,7 @@ void hal_sweep(TIM_HandleTypeDef* pwmtimer, pwmSettings_t* pwm)
   {
     if (CCRVal <= pwm->minVal + pwm->stepSize)
     {
-      countup = true;
+      pwm->countUp = true;
       CCRVal = pwm->minVal;
     }
     else 
@@ -164,7 +203,6 @@ void hal_sweep(TIM_HandleTypeDef* pwmtimer, pwmSettings_t* pwm)
  */
 void hal_timerPWM_periodSet(timerPWMPeripheral_t pwm, uint32_t usPeriod)
 {
-  uint32_t period = 0;
 
   switch(pwm)
   {
@@ -216,19 +254,17 @@ void hal_timerPWM_dutySet(TIM_HandleTypeDef* pwmtimer, timerPWMPeripheral_t pwm,
   switch(pwm)
   {
     case TIMERPWM_SERVO_0:
-
     pwmtimer->Instance->CCR1 = CCRVal;
-
     break;
 
     case TIMERPWM_SERVO_1:
-      //set PWM period (SERVO_1)
+    pwmtimer->Instance->CCR2 = CCRVal;
+    break;
 
-      break;
     case TIMERPWM_SERVO_2:
-      //set PWM period (SERVO_2)
+    pwmtimer->Instance->CCR3 = CCRVal;
+    break;
 
-      break;
     case TIMERPWM_SERVO_3:
       //set PWM period (SERVO_3)
 

@@ -5,6 +5,7 @@
 #include "app_threadx.h"
 #include "timerpwm.h"
 
+
 #define NUM_OF_STEPPERS 2
 #define NUM_OF_POTIS 2
 
@@ -14,12 +15,78 @@ uint8_t DataR[2] = {0,0}; //array to catch encoder response
 volatile uint16_t PotValues[NUM_OF_POTIS];
 volatile uint16_t ADC_BUF[2] __attribute__((section(".nocache"))); // add this array to non cacheable area
 
-const uint16_t maxVal = 900;  
-const uint16_t minVal = 100;
-const uint16_t stepSize = 1;
 
-bool countup = true;
 
+// all the connected peripherals and their values
+pwmSettings_t pwm[TIMERPWM_LAST_PERIPHERIE] = 
+
+{
+
+  {
+    .peripherie = TIMERPWM_SERVO_0,
+    .countUp = false,
+    .maxVal = 500,
+    .minVal = 100,
+    .stepSize = 10 
+
+  },
+  
+  {
+    .peripherie = TIMERPWM_SERVO_1,
+    .countUp = false,
+    .maxVal = 500,
+    .minVal = 250,
+    .stepSize = 10 
+
+  },
+
+  {
+    .peripherie = TIMERPWM_SERVO_2,
+    .countUp = false,
+    .maxVal = 900,
+    .minVal = 100,
+    .stepSize = 1
+
+  },
+
+  {
+    .peripherie = TIMERPWM_SERVO_3,
+    .countUp = false,
+    .maxVal = 900,
+    .minVal = 100,
+    .stepSize = 1
+
+  },
+
+  {
+    .peripherie = TIMERPWM_SERVO_4,
+    .countUp = false,
+    .maxVal = 900,
+    .minVal = 100,
+    .stepSize = 1
+
+  },
+
+  {
+    .peripherie = STEPPER_1,
+    .countUp = false,
+    .maxVal = 900,
+    .minVal = 100,
+    .stepSize = 1
+
+  },
+
+  {
+    .peripherie = STEPPER_2,
+    .countUp = false,
+    .maxVal = 900,
+    .minVal = 100,
+    .stepSize = 1
+
+  }
+
+
+};
 
 
 // read encoder and modify the period of the pwm signals according to the adc values
@@ -93,15 +160,8 @@ void MainThread(UART_HandleTypeDef* huart, TIM_HandleTypeDef* timer, ADC_HandleT
 void ServoControl(ADC_HandleTypeDef* hadc, TIM_HandleTypeDef* pwmtimer, TIM_HandleTypeDef* triggertimer)
 {
 
-   // PWM init
-  
-   if (HAL_OK != hal_timerPWM_start(pwmtimer))
-   {
-    Error_Handler();
-   }
+  volatile uint32_t CCRVal;
 
-
-  // ADC init
 
   if (HAL_OK != HAL_ADCEx_Calibration_Start(hadc, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED))   // calibrate the adc
   {
@@ -115,11 +175,18 @@ void ServoControl(ADC_HandleTypeDef* hadc, TIM_HandleTypeDef* pwmtimer, TIM_Hand
 
   HAL_TIM_Base_Start(triggertimer); // start the timer that triggers ADC Conversions
 
-  volatile uint32_t CCRVal = pwmtimer->Instance->CCR1; // TIMERCHANNEL1 OUT PE9
 
   /* Infinite loop */
   while(1)
   {
+
+
+    hal_sweep(pwmtimer, &pwm[TIMERPWM_SERVO_0]);  // sweep servo 0
+
+
+    hal_sweep(pwmtimer, &pwm[TIMERPWM_SERVO_1]);  // sweep servo 1
+
+
     // assuming the pulse period is stored in the CCR Register of the timer
 
 
@@ -127,39 +194,8 @@ void ServoControl(ADC_HandleTypeDef* hadc, TIM_HandleTypeDef* pwmtimer, TIM_Hand
     // 10% and 90% Duty cyle 
 
 
-    if (countup == true)
-    {
-      if (CCRVal >= maxVal-stepSize)
-      {
-        countup = false;
-        CCRVal = maxVal;
-      }
-
-      else 
-      {
-        CCRVal += stepSize;
-      }
-
-    }
-
-    else
-    {
-      if (CCRVal <= minVal + stepSize)
-      {
-        countup = true;
-        CCRVal = minVal;
-      }
-      else 
-      {
-        CCRVal -= stepSize;
-      }
-    }
-
-    pwmtimer->Instance->CCR1 = CCRVal;
-
-
-  HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
-  _tx_thread_sleep(200);  // restart task every 200 ticks to allow context switch
+    HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
+    _tx_thread_sleep(10);  // restart task every 200 ticks to allow context switch
 
   }
   
