@@ -159,7 +159,7 @@ void MainThread(UART_HandleTypeDef* huart, TIM_HandleTypeDef* timer, ADC_HandleT
   * @param  None    
   * @retval None
   */
-void ServoControl(ADC_HandleTypeDef* hadc, TIM_HandleTypeDef* pwmtimer, TIM_HandleTypeDef* triggertimer);
+ void ServoControl(ADC_HandleTypeDef* hadc, TIM_HandleTypeDef* servotimer,TIM_HandleTypeDef* steppertimer, TIM_HandleTypeDef* triggertimer);
 
 
 /**

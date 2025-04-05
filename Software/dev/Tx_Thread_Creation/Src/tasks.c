@@ -1,3 +1,15 @@
+/**
+ ****************************************************************
+ @file    tasks.c
+ ****************************************************************
+ @brief   This module contains the threads that control a
+ @brief   robotic arm
+ ****************************************************************
+ @author  Christian Weidmann
+ @version 0
+ @date    05.04.2025
+ ****************************************************************
+ */
 #include <stdio.h>  // definition of printf
 
 #include "tasks.h"
@@ -6,8 +18,8 @@
 #include "timerpwm.h"
 
 
-#define NUM_OF_STEPPERS 2
-#define NUM_OF_POTIS 2
+
+#define DEBUG_ADC
 
 
 uint8_t addresses[1] = {RS485_ENC0};  //data to send with readposition command
@@ -15,6 +27,8 @@ uint8_t DataR[2] = {0,0}; //array to catch encoder response
 volatile uint16_t PotValues[NUM_OF_POTIS];
 volatile uint16_t ADC_BUF[2] __attribute__((section(".nocache"))); // add this array to non cacheable area
 
+
+static void adc_init(ADC_HandleTypeDef* hadc, TIM_HandleTypeDef* triggertimer);
 
 
 // all the connected peripherals and their values
@@ -68,10 +82,15 @@ pwmSettings_t pwm[TIMERPWM_LAST_PERIPHERIE] =
   },
 
   {
+    /*
+    AAR = 100, f = 1000Hz
+    AAR = 1000, f = 100Hz (default)
+    AAR = 10000, f = 10Hz  
+    */
     .peripherie = STEPPER_1,
     .countUp = false,
-    .maxVal = 900,
-    .minVal = 100,
+    .maxVal = 1500,  
+    .minVal = 500,
     .stepSize = 1
 
   },
@@ -89,8 +108,18 @@ pwmSettings_t pwm[TIMERPWM_LAST_PERIPHERIE] =
 };
 
 
-// read encoder and modify the period of the pwm signals according to the adc values
 
+
+/**
+ ****************************************************************
+ @brief  Start all PWM's
+ @param  pwmtimer timer which outputs the pwm signals
+ @param  huart  uart instance for serial communication with the Encoder
+ @param  timer  unused
+ @param  adc  unused 
+ @return -
+ ****************************************************************
+ */
 void MainThread(UART_HandleTypeDef* huart, TIM_HandleTypeDef* timer, ADC_HandleTypeDef* adc)
 {
 
@@ -141,39 +170,31 @@ void MainThread(UART_HandleTypeDef* huart, TIM_HandleTypeDef* timer, ADC_HandleT
       from the encoder(s)
      */
 
+     HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin); // indicates the code is running
 
+     _tx_thread_sleep(100);  // restart task every 100 ticks to enable context switch
 
-
-      HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin); // indicates the code is running
-
-      _tx_thread_sleep(100);  // restart task every 100 ticks to enable context switch
-
-    } // end of for
-  } // end of while
+   } // end of for
+ } // end of while
 
 }
 
-// outputs the pwm signals for the connected servos
 
-// initializes the ADC
-
-void ServoControl(ADC_HandleTypeDef* hadc, TIM_HandleTypeDef* pwmtimer, TIM_HandleTypeDef* triggertimer)
+/**
+ ****************************************************************
+ @brief  Initializes ADC and PWM Generation then controls all servos
+ @param  hadc ADC struct which samples the stick (2 inputs, x and y)
+ @param  pwmtimer timer struct which outputs the PWM Signals
+ @param  triggertimer timer which periodically triggers an ADC Conversion 
+ @return -
+ ****************************************************************
+ */
+void ServoControl(ADC_HandleTypeDef* hadc, TIM_HandleTypeDef* servotimer,TIM_HandleTypeDef* steppertimer, TIM_HandleTypeDef* triggertimer)
 {
 
-  volatile uint32_t CCRVal;
+  adc_init(hadc, triggertimer); // start ADC in circular mode
 
-
-  if (HAL_OK != HAL_ADCEx_Calibration_Start(hadc, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED))   // calibrate the adc
-  {
-    Error_Handler();
-  } 
-  
-  if (HAL_OK != HAL_ADC_Start_DMA(hadc, (uint32_t*) &ADC_BUF, NUM_OF_POTIS))   // start the ADC conversion over DMA in circular mode
-  {
-    Error_Handler();
-  } 
-
-  HAL_TIM_Base_Start(triggertimer); // start the timer that triggers ADC Conversions
+  hal_timerPWM_start(servotimer, steppertimer, pwm);  // start PWM Generation
 
 
   /* Infinite loop */
@@ -181,17 +202,12 @@ void ServoControl(ADC_HandleTypeDef* hadc, TIM_HandleTypeDef* pwmtimer, TIM_Hand
   {
 
 
-    hal_sweep(pwmtimer, &pwm[TIMERPWM_SERVO_0]);  // sweep servo 0
+    hal_sweep(servotimer, &pwm[TIMERPWM_SERVO_0]);  // sweep servo 0
 
 
-    hal_sweep(pwmtimer, &pwm[TIMERPWM_SERVO_1]);  // sweep servo 1
+    hal_sweep(servotimer, &pwm[TIMERPWM_SERVO_1]);  // sweep servo 1
 
-
-    // assuming the pulse period is stored in the CCR Register of the timer
-
-
-    // 250 ticks is 25 percent duty cycyle, with maxVal at 900 and minVal at 100 we sweep between 
-    // 10% and 90% Duty cyle 
+    hal_sweep(servotimer, &pwm[STEPPER_1]); // sweep stepper 1 on PA7
 
 
     HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
@@ -204,6 +220,13 @@ void ServoControl(ADC_HandleTypeDef* hadc, TIM_HandleTypeDef* pwmtimer, TIM_Hand
   }
 
 
+/**
+ ****************************************************************
+ @brief  reserve thread for extending functionallity in the future
+ @param  - 
+ @return -
+ ****************************************************************
+ */
 void ExtraThread(void)
 {
 
@@ -221,8 +244,15 @@ void ExtraThread(void)
 }
 
 
-//Conversion Complete callback function
-
+/**
+ ****************************************************************
+ @brief  Conversion complete callback function
+ @brief  this fucntion is called everytime the adc has done a full
+ @brief  conversion
+ @param  - 
+ @return -
+ ****************************************************************
+ */
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)  
 {
     
@@ -238,8 +268,12 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
     PotValues[0] = value0;
     PotValues[1] = value1;
 
+#ifdef DEBUG_ADC
+
     printf("X Value: %u\n", ADC_BUF[0]);  // DEBUG
     printf("Y Value: %u\n", ADC_BUF[1]);  // DEBUG 
+
+#endif
 
 }
 
@@ -291,5 +325,28 @@ void setStateRS485(uint8_t state)
 
 }
 
+/**
+ ****************************************************************
+ @brief  Initializes the ADC, starts the triggering timer 
+ @param  hadc ADC Instance
+ @param  triggertimer timer which triggers an adc conversion
+ @return -
+ ****************************************************************
+ */
+void adc_init(ADC_HandleTypeDef* hadc, TIM_HandleTypeDef* triggertimer)
+{
 
 
+  if (HAL_OK != HAL_ADCEx_Calibration_Start(hadc, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED))   // calibrate the adc
+  {
+    Error_Handler();
+  } 
+  
+  if (HAL_OK != HAL_ADC_Start_DMA(hadc, (uint32_t*) &ADC_BUF, NUM_OF_POTIS))   // start the ADC conversion over DMA in circular mode
+  {
+    Error_Handler();
+  } 
+
+  HAL_TIM_Base_Start(triggertimer); // start the timer that triggers ADC Conversions
+
+}

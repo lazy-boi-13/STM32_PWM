@@ -1,17 +1,18 @@
 /**
  ****************************************************************
- @file    hal_timerPWM.c
+ @file    timerPWM.c
  ****************************************************************
  @brief   This module offers a set of functions to handle pwm outputs by
  @brief   timer peripherals.
  ****************************************************************
- @author  Adrian Tuescher, IMES/HSR
- @version 01.011
- @date    2021-04-14
+ @author  Christian Weidmann
+ @version 0
+ @date    05.04.2025
  ****************************************************************
  */
 
 // --- Includes
+#include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include "main.h"
@@ -24,16 +25,19 @@
 void _hal_timerPWM_dutySet(timerPWMPeripheral_t pwm, uint32_t partOfTousend);
 
 // --- Variables
-volatile uint32_t CCRVal;
+volatile uint32_t RegisterVal; // Capture compare register-value
+volatile uint32_t ARRVal; // auto reload register-value 
+
 
 /**
  ****************************************************************
  @brief  Start all PWM's
- @param  -pwmtimer: timer which outputs the pwm signals
+ @param  pwmtimer timer which outputs the pwm signals
+ @param  arr struct with pwm parameters
  @return -
  ****************************************************************
  */
-HAL_StatusTypeDef hal_timerPWM_start(TIM_HandleTypeDef* pwmtimer, pwmSettings_t* arr)
+HAL_StatusTypeDef hal_timerPWM_start(TIM_HandleTypeDef* servotimer, TIM_HandleTypeDef* steppertimer, pwmSettings_t* arr)
 {
 
 
@@ -45,7 +49,7 @@ HAL_StatusTypeDef hal_timerPWM_start(TIM_HandleTypeDef* pwmtimer, pwmSettings_t*
 
     case TIMERPWM_SERVO_0:
 
-      if (HAL_OK != HAL_TIM_PWM_Start(pwmtimer, TIM_CHANNEL_1))
+      if (HAL_OK != HAL_TIM_PWM_Start(servotimer, TIM_CHANNEL_1))
       {
         Error_Handler();
       }
@@ -54,7 +58,7 @@ HAL_StatusTypeDef hal_timerPWM_start(TIM_HandleTypeDef* pwmtimer, pwmSettings_t*
 
     case TIMERPWM_SERVO_1:
 
-      if (HAL_OK != HAL_TIM_PWM_Start(pwmtimer, TIM_CHANNEL_2))
+      if (HAL_OK != HAL_TIM_PWM_Start(servotimer, TIM_CHANNEL_2))
       {
         Error_Handler();  
       } 
@@ -63,7 +67,7 @@ HAL_StatusTypeDef hal_timerPWM_start(TIM_HandleTypeDef* pwmtimer, pwmSettings_t*
 
     case TIMERPWM_SERVO_2:
 
-      if (HAL_OK != HAL_TIM_PWM_Start(pwmtimer, TIM_CHANNEL_3))
+      if (HAL_OK != HAL_TIM_PWM_Start(servotimer, TIM_CHANNEL_3))
       {
         Error_Handler();
       } 
@@ -75,13 +79,18 @@ HAL_StatusTypeDef hal_timerPWM_start(TIM_HandleTypeDef* pwmtimer, pwmSettings_t*
 
       break;
     case TIMERPWM_SERVO_4:
-       //set PWM period (SERVO_4)
+       //servo 4 is started with the steppertimer
 
         break;
     case STEPPER_1:
-       //set PWM period (STEPPER_1)
 
-        break;
+      if (HAL_OK != HAL_TIM_PWM_Start(steppertimer, TIM_CHANNEL_2))
+      {
+        Error_Handler();
+      } 
+
+    break;
+    
     case STEPPER_2:
        //set PWM period (STEPPER_2)
 
@@ -127,15 +136,15 @@ void hal_sweep(TIM_HandleTypeDef* pwmtimer, pwmSettings_t* pwm)
   {
 
     case TIMERPWM_SERVO_0:
-    CCRVal = pwmtimer->Instance->CCR1;
+    RegisterVal = pwmtimer->Instance->CCR1;
     break;
 
     case TIMERPWM_SERVO_1:
-    CCRVal = pwmtimer->Instance->CCR2;
+    RegisterVal = pwmtimer->Instance->CCR2;
+    break;
 
-      break;
     case TIMERPWM_SERVO_2:
-    CCRVal = pwmtimer->Instance->CCR3;
+    RegisterVal = pwmtimer->Instance->CCR3;
 
       break;
     case TIMERPWM_SERVO_3:
@@ -148,8 +157,8 @@ void hal_sweep(TIM_HandleTypeDef* pwmtimer, pwmSettings_t* pwm)
         break;
     case STEPPER_1:
        //set PWM period (STEPPER_1)
-
-        break;
+    RegisterVal = pwmtimer->Instance->ARR;
+    break;
     case STEPPER_2:
        //set PWM period (STEPPER_2)
 
@@ -163,32 +172,43 @@ void hal_sweep(TIM_HandleTypeDef* pwmtimer, pwmSettings_t* pwm)
 
   if (pwm->countUp == true)
   {
-    if (CCRVal >= pwm->maxVal - pwm->stepSize)
+    if (RegisterVal >= pwm->maxVal - pwm->stepSize)
     {
       pwm->countUp = false;
-      CCRVal = pwm->maxVal;
+      RegisterVal = pwm->maxVal;
     }
 
     else 
     {
-      CCRVal += pwm->stepSize;
+      RegisterVal += pwm->stepSize;
     }
   }
 
   else
   {
-    if (CCRVal <= pwm->minVal + pwm->stepSize)
+    if (RegisterVal <= pwm->minVal + pwm->stepSize)
     {
       pwm->countUp = true;
-      CCRVal = pwm->minVal;
+      RegisterVal = pwm->minVal;
     }
     else 
     {
-      CCRVal -= pwm->stepSize;
+      RegisterVal -= pwm->stepSize;
     }
   }
 
-  hal_timerPWM_dutySet(pwmtimer, pwm->peripherie, CCRVal);
+
+  if (pwm->peripherie < (TIMERPWM_LAST_PERIPHERIE - NUM_OF_STEPPERS))
+  {
+    hal_timerPWM_dutySet(pwmtimer, pwm->peripherie, RegisterVal);
+  }
+
+  else
+  {
+    hal_timerPWM_periodSet(pwmtimer,pwm->peripherie, RegisterVal);
+  }
+
+
 
 }
 
@@ -201,43 +221,26 @@ void hal_sweep(TIM_HandleTypeDef* pwmtimer, pwmSettings_t* pwm)
  @return -
  ****************************************************************
  */
-void hal_timerPWM_periodSet(timerPWMPeripheral_t pwm, uint32_t usPeriod)
+void hal_timerPWM_periodSet(TIM_HandleTypeDef* pwmtimer, timerPWMPeripheral_t pwm, uint16_t period)
 {
 
+  // get ARR value (period)
   switch(pwm)
   {
-    case TIMERPWM_SERVO_0:
-      //set PWM period (SERVO_0)
 
-
-      break;
-    case TIMERPWM_SERVO_1:
-      //set PWM period (SERVO_1)
-
-      break;
-    case TIMERPWM_SERVO_2:
-      //set PWM period (SERVO_2)
-
-      break;
-    case TIMERPWM_SERVO_3:
-      //set PWM period (SERVO_3)
-
-      break;
-    case TIMERPWM_SERVO_4:
-       //set PWM period (SERVO_4)
-
-        break;
     case STEPPER_1:
-       //set PWM period (STEPPER_1)
+    pwmtimer->Instance->ARR = period;
+      break; 
 
-        break;
     case STEPPER_2:
        //set PWM period (STEPPER_2)
 
       break;
+
     default:
       break;
   }
+
 }
 
 /**

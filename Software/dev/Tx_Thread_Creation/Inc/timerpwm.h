@@ -18,7 +18,8 @@
 
 
 // --- Defines
-#define DEFAULT_PERIOD_US         500
+#define NUM_OF_STEPPERS   2
+#define NUM_OF_POTIS  2
 
 
 // --- Typedefs
@@ -42,22 +43,22 @@ typedef struct
     uint32_t stepSize;
     uint32_t duty;
     bool countUp;
-    uint16_t maxVal;    // max Duty Cycle 
-    uint16_t minVal;    // min. Duty Cycle 
+    uint16_t maxVal;    // max Duty Cycle or period if stepper  
+    uint16_t minVal;    // min. Duty Cycle or period if stepper
     uint16_t center;    // unmapped ADC Value for center position
     const timerPWMPeripheral_t peripherie;
 
 } pwmSettings_t;
 
 // --- Function Prototypes
-HAL_StatusTypeDef hal_timerPWM_start(TIM_HandleTypeDef* pwmtimer, pwmSettings_t* arr);
+HAL_StatusTypeDef hal_timerPWM_start(TIM_HandleTypeDef* servotimer, TIM_HandleTypeDef* steppertimer, pwmSettings_t* arr);
 void hal_timerPWM_stop(TIM_HandleTypeDef* pwmtimer);
 void hal_sweep(TIM_HandleTypeDef* pwmtimer, pwmSettings_t* pwm);
 
 
 
 // in progress...
-void hal_timerPWM_periodSet(timerPWMPeripheral_t pwm, uint32_t usPeriod);
+void hal_timerPWM_periodSet(TIM_HandleTypeDef* pwmtimer, timerPWMPeripheral_t pwm, uint16_t period);
 void hal_timerPWM_dutySet(TIM_HandleTypeDef* pwmtimer, timerPWMPeripheral_t pwm, uint32_t CCRVal);
 void hal_timerPWM_hold(timerPWMPeripheral_t pwm, bool enable);
 
