@@ -87,7 +87,7 @@ static void MX_TIM2_Init(void);
 static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
 
-void CallMainThread(void) {MainThread(&huart2, &htim1, &hadc1);} 
+void CallMainThread(void) {MainThread(&huart2, &htim1, &hadc1);}
 void CallThreadOne(void)  {ServoControl(&hadc1, &htim1, &htim3, &htim2);}
 void CallThreadTwo(void)  {ExtraThread();}
 

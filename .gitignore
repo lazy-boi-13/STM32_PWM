@@ -1,5 +1,12 @@
 Software/dev/Tx_Thread_Creation/.vscode
 Software/dev/Tx_Thread_Creation/build
 Software/dev/Tx_Thread_Creation/.stm32env
+Software/dev/Tx_Thread_Creation/old
+
 
 Software/dev/Tx_Thread_Creation/STM32H723ZGTx_FLASH.ld
+Software/dev/Tx_Thread_Creation/.cproject
+Software/dev/Tx_Thread_Creation/.project
+Software/dev/Tx_Thread_Creation/.settings/language.settings.xml
+Software/dev/Tx_Thread_Creation/Makefile
+Software/dev/Tx_Thread_Creation/Tx_Thread_Creation Default.launch
