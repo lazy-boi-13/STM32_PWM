@@ -255,6 +255,7 @@ Middlewares/ST/threadx/common/src/txe_timer_delete.c \
 Middlewares/ST/threadx/common/src/txe_timer_info_get.c \
 Src/app_azure_rtos.c \
 Src/app_threadx.c \
+Src/hal_adc.c \
 Src/main.c \
 Src/stm32h7xx_hal_msp.c \
 Src/stm32h7xx_hal_timebase_tim.c \
