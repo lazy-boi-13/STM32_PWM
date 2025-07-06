@@ -37,6 +37,8 @@ BUILD_DIR = build
 # C sources
 C_SOURCES =  \
 Src/main.c \
+Src/tasks.c \
+Src/timerpwm.c \
 Src/app_threadx.c \
 Src/app_azure_rtos.c \
 Src/stm32h7xx_it.c \

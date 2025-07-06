@@ -1,7 +1,0 @@
-whenever generating code form cube mx repost those callback functions:
-
-
-
-void CallMainThread(void) {MainThread(&huart2, &htim1);}  // calling the MainThread
-void CallThreadOne(void)  {ThreadOne_x();}
-void CallThreadTwo(void)  {ThreadTwo_x();}
