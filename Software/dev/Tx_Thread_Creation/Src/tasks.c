@@ -37,6 +37,7 @@ volatile uint16_t ADC_BUF[2] __attribute__((section(".nocache"))); // add this a
 static void adc_init(ADC_HandleTypeDef* hadc, TIM_HandleTypeDef* triggertimer);
 
 
+
 // all the connected peripherals and their values
 pwmSettings_t pwm[TIMERPWM_LAST_PERIPHERIE] = 
 
@@ -195,12 +196,14 @@ void MainThread(UART_HandleTypeDef* huart, TIM_HandleTypeDef* timer, ADC_HandleT
  @return -
  ****************************************************************
  */
-void ServoControl(ADC_HandleTypeDef* hadc, TIM_HandleTypeDef* servotimer,TIM_HandleTypeDef* steppertimer, TIM_HandleTypeDef* triggertimer)
+void ServoControl(ADC_HandleTypeDef* hadc, TIM_HandleTypeDef** timers)
 {
 
-  adc_init(hadc, triggertimer); // start ADC in circular mode
 
-  hal_timerPWM_start(servotimer, steppertimer, pwm);  // start PWM Generation
+
+  adc_init(hadc, timers[servotimer]); // start ADC in circular mode
+
+  hal_timerPWM_start(timers[servotimer], timers[steppertimer], pwm);  // start PWM Generation
 
 
   /* Infinite loop */
@@ -208,12 +211,12 @@ void ServoControl(ADC_HandleTypeDef* hadc, TIM_HandleTypeDef* servotimer,TIM_Han
   {
 
 
-    hal_sweep(servotimer, &pwm[TIMERPWM_SERVO_0]);  // sweep servo 0
+    hal_sweep(timers[servotimer], &pwm[TIMERPWM_SERVO_0]);  // sweep servo 0
 
 
-    hal_sweep(servotimer, &pwm[TIMERPWM_SERVO_1]);  // sweep servo 1
+    hal_sweep(timers[servotimer], &pwm[TIMERPWM_SERVO_1]);  // sweep servo 1
 
-    hal_sweep(servotimer, &pwm[STEPPER_1]); // sweep stepper 1 on PA7
+    hal_sweep(timers[servotimer], &pwm[STEPPER_1]); // sweep stepper 1 on PA7
 
 
     HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);

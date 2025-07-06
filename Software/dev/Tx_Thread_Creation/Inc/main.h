@@ -51,6 +51,12 @@ int iar_fputc(int ch);
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
 
+typedef enum {
+	servotimer = 0,
+	triggertimer,
+	steppertimer
+} timer_t;
+
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/

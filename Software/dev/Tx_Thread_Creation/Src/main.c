@@ -87,8 +87,11 @@ static void MX_TIM2_Init(void);
 static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
 
+TIM_HandleTypeDef* timers[3] = {&htim1, &htim2, &htim3};
+
+
 void CallMainThread(void) {MainThread(&huart2, &htim1, &hadc1);}
-void CallThreadOne(void)  {ServoControl(&hadc1, &htim1, &htim3, &htim2);}
+void CallThreadOne(void)  {ServoControl(&hadc1, timers);}
 void CallThreadTwo(void)  {ExtraThread();}
 
 /* USER CODE END PFP */
