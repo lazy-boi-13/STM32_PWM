@@ -54,10 +54,12 @@ HAL_ADC_Start(..) is called once and runs continuously in circular mode
 
 a conversion is triggered by timer 2 trigger out event every 100ms
 
-for the H7 series the the buffer needs to be put into a non cacheable area:
+## <b>Using I and D chache</b>
 
-	the RAM_D3 Memory area has its base address and size as seen in the specific linker script
-	here STM32H723GTx_FLASH.ld:
+for the H7 series the the buffer needs to be put into a non cacheable area
+
+the RAM_D3 Memory area has its base address and size as seen in the specific linker script
+here STM32H723GTx_FLASH.ld:
 	
 	RAM_D3  (xrw)    : ORIGIN = 0x38000000,   LENGTH = 16K
 
@@ -72,27 +74,35 @@ for the H7 series the the buffer needs to be put into a non cacheable area:
 	
 	} >RAM_D3
 
-	in the .ioc file under System core-> CORTEX_M7 with i and D Cache enabled 
-
-
-	![Image caption](pictures/Memory RegionSettings.png)
-
-
-	then add the array to the memory area we reserved and the keyword volatile to avoid compiler optimizations:
+then add the array to the memory area we reserved and the keyword volatile to avoid compiler optimizations:
 
 	volatile uint16_t ADC_BUF[2] __attribute__((section(".nocache")));
 	
 
-	## <b>Working with git</b>
-
-	discard all changes and reset the current branch history
-
-		git fetch origin
-
-		git reset --hard origin/main
-	
-	push current version of project, ignore merge conflicts
-
-		git push --force origin
 
 
+
+Enable I and D chache 
+
+![Alt text](pictures/MemoryRegionSettings.png)
+
+
+
+## <b>Working with Git</b>
+
+discard all changes and reset the current branch history
+
+	git fetch origin
+
+	git reset --hard origin/main
+
+push current version of project, ignore merge conflicts
+
+	git push --force origin
+
+
+## <b>Pin Layout</b>
+
+text....
+
+![Alt text](pictures/PinLayout.png)
