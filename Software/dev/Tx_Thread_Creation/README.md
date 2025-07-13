@@ -83,9 +83,9 @@ then add the array to the memory area we reserved and the keyword volatile to av
 
 
 
-Enable I and D chache 
+Enable I and D chache in CubeMX
 
-![Alt text](pictures/MemoryRegionSettings.png)
+![Alt text](images/MemoryRegionSettings.png)
 
 
 
@@ -106,4 +106,4 @@ push current version of project, ignore merge conflicts
 
 text....
 
-![Alt text](pictures/PinLayout.png)
+![Alt text](images/PinLayout.png)
