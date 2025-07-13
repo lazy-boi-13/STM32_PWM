@@ -145,27 +145,25 @@ void hal_sweep(TIM_HandleTypeDef* pwmtimer, pwmSettings_t* pwm)
 
     case TIMERPWM_SERVO_2:
     RegisterVal = pwmtimer->Instance->CCR3;
+    break;
 
-      break;
     case TIMERPWM_SERVO_3:
-      //set PWM period (SERVO_3)
+    break;
 
-      break;
     case TIMERPWM_SERVO_4:
-       //set PWM period (SERVO_4)
+    break;
 
-        break;
     case STEPPER_1:
-       //set PWM period (STEPPER_1)
+    //set PWM period (STEPPER_1)
     RegisterVal = pwmtimer->Instance->ARR;
     break;
-    case STEPPER_2:
-       //set PWM period (STEPPER_2)
 
-      break;
+    case STEPPER_2:
+    //set PWM period (STEPPER_2)
+    break;
 
     default:
-      break;
+    break;
   }
 
 
@@ -269,23 +267,21 @@ void hal_timerPWM_dutySet(TIM_HandleTypeDef* pwmtimer, timerPWMPeripheral_t pwm,
     break;
 
     case TIMERPWM_SERVO_3:
-      //set PWM period (SERVO_3)
+    break;
 
-      break;
     case TIMERPWM_SERVO_4:
-       //set PWM period (SERVO_4)
+    break;
 
-        break;
     case STEPPER_1:
-       //set PWM period (STEPPER_1)
+    //set PWM period (STEPPER_1)
+    break;
 
-        break;
     case STEPPER_2:
-       //set PWM period (STEPPER_2)
+    //set PWM period (STEPPER_2)
+    break;
 
-      break;
     default:
-      break;
+    break;
   }
 
 
@@ -311,7 +307,6 @@ void _hal_timerPWM_dutySet(timerPWMPeripheral_t pwm, uint32_t partOfTousend)
     switch(pwm)
     {
       case TIMERPWM_SERVO_0:
-
         break;
       case TIMERPWM_SERVO_1:
 
