@@ -82,6 +82,7 @@ then add the array to the memory area we reserved and the keyword volatile to av
 
 
 
+
 Enable I and D chache 
 
 ![Alt text](pictures/MemoryRegionSettings.png)
