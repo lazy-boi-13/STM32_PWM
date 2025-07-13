@@ -86,14 +86,23 @@ pwmSettings_t pwm[TIMERPWM_LAST_PERIPHERIE] =
 
   {
     /*
+
+    Auto Reload Register (AAR)
+    contains period
+
     AAR = 100, f = 1000Hz
     AAR = 1000, f = 100Hz (default)
-    AAR = 10000, f = 10Hz  
+    AAR = 10000, f = 10Hz
+    
+    careful: the pulse value always stays the same no 
+    matter what the period is
+
+
     */
     .peripherie = STEPPER_1,
     .countUp = false,
-    .maxVal = 1500,  
-    .minVal = 500,
+    .maxVal = 10000, // 10Hz 
+    .minVal = 9000, // 11Hz
     .stepSize = 10
 
   },
