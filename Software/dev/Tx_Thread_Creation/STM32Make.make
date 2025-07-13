@@ -253,6 +253,7 @@ Middlewares/ST/threadx/common/src/txe_timer_create.c \
 Middlewares/ST/threadx/common/src/txe_timer_deactivate.c \
 Middlewares/ST/threadx/common/src/txe_timer_delete.c \
 Middlewares/ST/threadx/common/src/txe_timer_info_get.c \
+Src/AMT231.c \
 Src/app_azure_rtos.c \
 Src/app_threadx.c \
 Src/hal_adc.c \

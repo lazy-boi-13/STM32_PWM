@@ -60,7 +60,7 @@ typedef enum {
 	servotimer = 0,
 	triggertimer,
 	steppertimer
-} timer_t;
+} Timer_t;
 
 /* USER CODE END EC */
 
