@@ -94,7 +94,7 @@ pwmSettings_t pwm[TIMERPWM_LAST_PERIPHERIE] =
     .countUp = false,
     .maxVal = 1500,  
     .minVal = 500,
-    .stepSize = 1
+    .stepSize = 10
 
   },
 
@@ -149,26 +149,32 @@ void ServoControl(ADC_HandleTypeDef* hadc, TIM_HandleTypeDef** timers)
 
 
 
-  adc_init(hadc, timers[servotimer]); // start ADC in circular mode
+  adc_init(hadc, timers[triggertimer]); // start ADC in circular mode
 
-  hal_timerPWM_start(timers[servotimer], timers[steppertimer], pwm);  // start PWM Generation
+
+
+  hal_timerPWM_start(timers[servotimer], timers[steppertimer], pwm);  // start PWM Generation on all channels
+
+
 
 
   /* Infinite loop */
   while(1)
   {
 
+    
 
     hal_sweep(timers[servotimer], &pwm[TIMERPWM_SERVO_0]);  // sweep servo 0
 
 
     hal_sweep(timers[servotimer], &pwm[TIMERPWM_SERVO_1]);  // sweep servo 1
 
-    hal_sweep(timers[servotimer], &pwm[STEPPER_1]); // sweep stepper 1 on PA7
+
+    hal_sweep(timers[steppertimer], &pwm[STEPPER_1]); // sweep stepper 1 on PC7
 
 
     HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
-    _tx_thread_sleep(10);  // restart task every 200 ticks to allow context switch
+    _tx_thread_sleep(10);
 
   }
   

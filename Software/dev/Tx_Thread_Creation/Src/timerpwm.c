@@ -203,7 +203,7 @@ void hal_sweep(TIM_HandleTypeDef* pwmtimer, pwmSettings_t* pwm)
 
   else
   {
-    hal_timerPWM_periodSet(pwmtimer,pwm->peripherie, RegisterVal);
+    hal_timerPWM_periodSet(pwmtimer, pwm->peripherie, RegisterVal);
   }
 
 
