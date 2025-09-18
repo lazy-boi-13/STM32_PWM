@@ -126,7 +126,7 @@ pwmSettings_t pwm[TIMERPWM_LAST_PERIPHERIE] =
 
 /**
  ****************************************************************
- @brief  Start all PWM's
+ @brief  MainThread
  @param  pwmtimer timer which outputs the pwm signals
  @param  huart  uart instance for serial communication with the Encoder (AMT213) 
  @param  timer  unused
@@ -189,7 +189,6 @@ void ServoControl(ADC_HandleTypeDef* hadc, TIM_HandleTypeDef** timers)
 void ExtraThread(void)
 {
 
-  
 
   while (1) 
   {
@@ -199,7 +198,6 @@ void ExtraThread(void)
 
   }
 
-  
 }
 
 
@@ -218,7 +216,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
     uint16_t value0 = ADC_BUF[0];
     uint16_t value1 = ADC_BUF[1];
 
-    // 16 bit adc means the result is between 0 and 65536
+    // with 16 bit adc the result is between 0 and 65536
 
     // map the raw adc values accordingly
 
@@ -229,8 +227,8 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 
 #ifdef DEBUG_ADC
 
-    printf("X Value: %u\n", ADC_BUF[0]);  // DEBUG
-    printf("Y Value: %u\n", ADC_BUF[1]);  // DEBUG 
+    printf("X Value: %u\n", ADC_BUF[0]); 
+    printf("Y Value: %u\n", ADC_BUF[1]); 
 
 #endif
 
