@@ -97,13 +97,15 @@ pwmSettings_t pwm[TIMERPWM_LAST_PERIPHERIE] =
     careful: the pulse value always stays the same no 
     matter what the period is
 
-
     */
+
+    // pulse freq. = (clkSource/prescaler)/CounterPeriod = 192Mhz/192/1000 = 1kHz with pulse @200 equals 20% duty cycle
+
     .peripherie = STEPPER_1,
     .countUp = false,
-    .maxVal = 10000, // 10Hz 
-    .minVal = 9000, // 11Hz
-    .stepSize = 10
+    .maxVal = 1000, // 1000Hz
+    .minVal = 900, // 1111Hz
+    .stepSize = 5
 
   },
 
@@ -126,7 +128,7 @@ pwmSettings_t pwm[TIMERPWM_LAST_PERIPHERIE] =
  ****************************************************************
  @brief  Start all PWM's
  @param  pwmtimer timer which outputs the pwm signals
- @param  huart  uart instance for serial communication with the Encoder
+ @param  huart  uart instance for serial communication with the Encoder (AMT213) 
  @param  timer  unused
  @param  adc  unused 
  @return -
@@ -156,40 +158,25 @@ void MainThread(UART_HandleTypeDef* huart, TIM_HandleTypeDef* timer, ADC_HandleT
 void ServoControl(ADC_HandleTypeDef* hadc, TIM_HandleTypeDef** timers)
 {
 
-
-
   adc_init(hadc, timers[triggertimer]); // start ADC in circular mode
 
-
-
   hal_timerPWM_start(timers[servotimer], timers[steppertimer], pwm);  // start PWM Generation on all channels
-
-
 
 
   /* Infinite loop */
   while(1)
   {
 
-    
-
     hal_sweep(timers[servotimer], &pwm[TIMERPWM_SERVO_0]);  // sweep servo 0
-
-
     hal_sweep(timers[servotimer], &pwm[TIMERPWM_SERVO_1]);  // sweep servo 1
-
-
     hal_sweep(timers[steppertimer], &pwm[STEPPER_1]); // sweep stepper 1 on PC7
-
 
     HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
     _tx_thread_sleep(10);
 
   }
   
-
-
-  }
+}
 
 
 /**
