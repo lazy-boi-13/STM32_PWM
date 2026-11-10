@@ -64,7 +64,7 @@ Ensure Instruction (I) and Data (D) caches are enabled with MPU settings matchin
 
 ## 📌 Pin Layout
 
-![Pin Layout](documentation/pictures/PinLayout.png)
+![Pin Layout](documentation/pictures/pinLayout.png)
 
 ---
 
